@@ -1,0 +1,103 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DE Schulferien Heatmap</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="title">
+      <h1>German School Holidays Heatmap</h1>
+      <p class="subtitle">Overlap intensity = number of included Bundesländer on holiday. Select a Bundesland to highlight its holidays and view raw dates.</p>
+    </div>
+
+    <div class="controls">
+      <div class="control">
+        <label for="yearSelect">Year</label>
+        <select id="yearSelect" aria-label="Select year"></select>
+      </div>
+
+      <div class="control">
+        <label for="stateSelect">Selected Bundesland</label>
+        <div class="controlRow">
+          <select id="stateSelect" aria-label="Select Bundesland"></select>
+          <button id="showDetailsBtn" class="btn" type="button">Details</button>
+        </div>
+      </div>
+
+      <div class="control control--inline">
+        <button id="selectAllBtn" class="btn" type="button">All</button>
+        <button id="selectNoneBtn" class="btn" type="button">None</button>
+        <button id="reloadBtn" class="btn btn--primary" type="button">Reload</button>
+      </div>
+
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="panel side">
+      <div class="panel__header">
+        <h2>Included Bundesländer</h2>
+        <p class="hint">Affects overlap calculation (heat intensity).</p>
+      </div>
+      <div id="stateCheckboxes" class="checkboxes" aria-label="Bundesländer checkboxes"></div>
+    </section>
+
+    <section class="panel panel--wide">
+      <div class="panel__header">
+        <div class="panel__headerLeft">
+          <h2 id="heatmapTitle">Heatmap</h2>
+          <p class="hint">Monday-first weeks. Hover a day for details; click to pin tooltip.</p>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="heatmapWrap">
+        <div class="monthLabels" id="monthLabels" aria-hidden="true"></div>
+        <div class="dayLabels" aria-hidden="true">
+          <div>Mon</div>
+          <div>Wed</div>
+          <div>Fri</div>
+        </div>
+        <div id="heatmap" class="heatmap" aria-label="Holiday heatmap"></div>
+      </div>
+
+      <div class="footnotes">
+        <div class="chip" id="chipIncluded">Included: —</div>
+        <div class="chip" id="chipSelected">Selected: —</div>
+        <div class="chip" id="chipScale">Max overlap: —</div>
+      </div>
+    </section>
+  </main>
+
+  <div id="tooltip" class="tooltip" role="tooltip" aria-hidden="true"></div>
+
+  <div id="modalBackdrop" class="modalBackdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal__header">
+        <h3 id="modalTitle">Bundesland holidays</h3>
+        <button id="modalClose" class="iconBtn" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal__content">
+        <div class="modal__meta" id="modalMeta"></div>
+        <div id="modalBody" class="modal__body"></div>
+      </div>
+      <div class="modal__footer">
+        <button id="modalOk" class="btn btn--primary" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>
+      <strong>Local static data:</strong> Place files in <code>./data/holidays-YYYY.json</code> and run a local webserver (e.g. <code>python3 -m http.server</code>).
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

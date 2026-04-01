@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "year": 2026,
+    "source": "KMK / Ländertermine 2026",
+    "notes": "Zusammenhängende offizielle Schulferienblöcke je Bundesland. Einzelne bewegliche Ferientage können zusätzlich existieren."
+  },
+  "states": {
+    "bw": [
+      { "name": "Osterferien", "start": "2026-03-30", "end": "2026-04-11" },
+      { "name": "Pfingstferien", "start": "2026-05-26", "end": "2026-06-05" },
+      { "name": "Sommerferien", "start": "2026-07-30", "end": "2026-09-12" },
+      { "name": "Herbstferien", "start": "2026-10-26", "end": "2026-10-30" },
+      { "name": "Weihnachtsferien", "start": "2026-12-23", "end": "2027-01-09" }
+    ],
+
+    "by": [
+      { "name": "Winterferien", "start": "2026-02-16", "end": "2026-02-20" },
+      { "name": "Osterferien", "start": "2026-03-30", "end": "2026-04-10" },
+      { "name": "Pfingstferien", "start": "2026-05-26", "end": "2026-06-05" },
+      { "name": "Sommerferien", "start": "2026-08-03", "end": "2026-09-14" },
+      { "name": "Herbstferien", "start": "2026-11-02", "end": "2026-11-06" },
+      { "name": "Weihnachtsferien", "start": "2026-12-24", "end": "2027-01-08" }
+    ],
+
+    "be": [
+      { "name": "Winterferien", "start": "2026-02-02", "end": "2026-02-07" },
+      { "name": "Osterferien", "start": "2026-03-30", "end": "2026-04-10" },
+      { "name": "Sommerferien", "start": "2026-07-09", "end": "2026-08-22" },
+      { "name": "Herbstferien", "start": "2026-10-19", "end": "2026-10-31" },
+      { "name": "Weihnachtsferien", "start": "2026-12-23", "end": "2027-01-02" }
+    ],
+
+    "bb": [
+      { "name": "Winterferien", "start": "2026-02-02", "end": "2026-02-07" },
+      { "name": "Osterferien", "start": "2026-03-30", "end": "2026-04-10" },
+      { "name": "Sommerferien", "start": "2026-07-09", "end": "2026-08-22" },
+      { "name": "Herbstferien", "start": "2026-10-19", "end": "2026-10-31" },
+      { "name": "Weihnachtsferien", "start": "2026-12-23", "end": "2027-01-02" }
+    ],
+
+    "hb": [
+      { "name": "Winterferien", "start": "2026-02-02", "end": "2026-02-03" },
+      { "name": "Osterferien", "start": "2026-03-23", "end": "2026-04-07" },
+      { "name": "Sommerferien", "start": "2026-07-02", "end": "2026-08-12" },
+      { "name": "Herbstferien", "start": "2026-10-12", "end": "2026-10-24" },
+      { "name": "Weihnachtsferien", "start": "2026-12-23", "end": "2027-01-06" }
+    ],
+
+    "hh": [
+      { "name": "Frühjahrsferien", "start": "2026-03-02", "end": "2026-03-13" },
+      { "name": "Sommerferien", "start": "2026-07-09", "end": "2026-08-19" },
+      { "name": "Herbstferien", "start": "2026-10-19", "end": "2026-10-30" },
+      { "name": "Weihnachtsferien", "start": "2026-12-21", "end": "2027-01-01" }
+    ],
+
+    "he": [
+      { "name": "Osterferien", "start": "2026-03-30", "end": "2026-04-10" },
+      { "name": "Sommerferien", "start": "2026-07-06", "end": "2026-08-14" },
+      { "name": "Herbstferien", "start": "2026-10-05", "end": "2026-10-17" },
+      { "name": "Weihnachtsferien", "start": "2026-12-23", "end": "2027-01-09" }
+    ],
+
+    "mv": [
+      { "name": "Winterferien", "start": "2026-02-09", "end": "2026-02-20" },
+      { "name": "Osterferien", "start": "2026-03-30", "end": "2026-04-08" },
+      { "name": "Sommerferien", "start": "2026-07-13", "end": "2026-08-22" },
+      { "name": "Herbstferien", "start": "2026-10-12", "end": "2026-10-17" },
+      { "name": "Weihnachtsferien", "start": "2026-12-21", "end": "2027-01-02" }
+    ],
+
+    "ni": [
+      { "name": "Winterferien", "start": "2026-02-02", "end": "2026-02-03" },
+      { "name": "Osterferien", "start": "2026-03-23", "end": "2026-04-07" },
+      { "name": "Sommerferien", "start": "2026-07-02", "end": "2026-08-12" },
+      { "name": "Herbstferien", "start": "2026-10-12", "end": "2026-10-24" },
+      { "name": "Weihnachtsferien", "start": "2026-12-23", "end": "2027-01-08" }
+    ],
+
+    "nw": [
+      { "name": "Osterferien", "start": "2026-03-30", "end": "2026-04-11" },
+      { "name": "Sommerferien", "start": "2026-07-20", "end": "2026-09-01" },
+      { "name": "Herbstferien", "start": "2026-10-12", "end": "2026-10-24" },
+      { "name": "Weihnachtsferien", "start": "2026-12-23", "end": "2027-01-06" }
+    ],
+
+    "rp": [
+      { "name": "Osterferien", "start": "2026-03-30", "end": "2026-04-10" },
+      { "name": "Sommerferien", "start": "2026-07-06", "end": "2026-08-14" },
+      { "name": "Herbstferien", "start": "2026-10-12", "end": "2026-10-23" },
+      { "name": "Weihnachtsferien", "start": "2026-12-23", "end": "2027-01-08" }
+    ],
+
+    "sl": [
+      { "name": "Winterferien", "start": "2026-02-16", "end": "2026-02-20" },
+      { "name": "Osterferien", "start": "2026-04-07", "end": "2026-04-17" },
+      { "name": "Sommerferien", "start": "2026-07-06", "end": "2026-08-14" },
+      { "name": "Herbstferien", "start": "2026-10-12", "end": "2026-10-23" },
+      { "name": "Weihnachtsferien", "start": "2026-12-21", "end": "2027-01-01" }
+    ],
+
+    "sn": [
+      { "name": "Winterferien", "start": "2026-02-09", "end": "2026-02-21" },
+      { "name": "Osterferien", "start": "2026-04-03", "end": "2026-04-10" },
+      { "name": "Sommerferien", "start": "2026-07-04", "end": "2026-08-14" },
+      { "name": "Herbstferien", "start": "2026-10-12", "end": "2026-10-24" },
+      { "name": "Weihnachtsferien", "start": "2026-12-23", "end": "2027-01-02" }
+    ],
+
+    "st": [
+      { "name": "Winterferien", "start": "2026-01-31", "end": "2026-02-06" },
+      { "name": "Osterferien", "start": "2026-03-30", "end": "2026-04-04" },
+      { "name": "Sommerferien", "start": "2026-07-02", "end": "2026-08-12" },
+      { "name": "Herbstferien", "start": "2026-10-19", "end": "2026-10-24" },
+      { "name": "Weihnachtsferien", "start": "2026-12-21", "end": "2027-01-02" }
+    ],
+
+    "sh": [
+      { "name": "Osterferien", "start": "2026-03-26", "end": "2026-04-10" },
+      { "name": "Sommerferien", "start": "2026-07-20", "end": "2026-08-29" },
+      { "name": "Herbstferien", "start": "2026-10-12", "end": "2026-10-24" },
+      { "name": "Weihnachtsferien", "start": "2026-12-21", "end": "2027-01-06" }
+    ],
+
+    "th": [
+      { "name": "Winterferien", "start": "2026-02-16", "end": "2026-02-21" },
+      { "name": "Osterferien", "start": "2026-04-07", "end": "2026-04-17" },
+      { "name": "Sommerferien", "start": "2026-07-04", "end": "2026-08-14" },
+      { "name": "Herbstferien", "start": "2026-10-12", "end": "2026-10-24" },
+      { "name": "Weihnachtsferien", "start": "2026-12-23", "end": "2027-01-02" }
+    ]
+  }
+}
