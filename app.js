@@ -1,12 +1,13 @@
-
 /*
   DE Schulferien heatmap (static JSON version)
 
-  Changes in this version:
-  - Monday-first layout
-  - Selected Bundesland days are SOLID highlight
-  - Overlap intensity is layered as a semi-transparent overlay on top of the selected color
-  - Loads static JSON from ./data/holidays-YYYY.json
+  New in this iteration:
+  - Axis Mon..Sun (Monday-first)
+  - Month labels centered per month (placed at mid-month week)
+  - Weekends slightly more saturated
+  - Blue palette for overlap (included states)
+  - Yellow palette for selected Bundesland days (shade uses overlap level)
+  - Nationwide public holidays (Feiertage) shown with orange hatch overlay
 */
 
 (() => {
@@ -97,6 +98,7 @@
     included: new Set(CONFIG.defaultIncluded),
     holidaysByState: new Map(),
     dayMap: new Map(),
+    publicHolidays: new Map(), // iso -> name
     pinnedCell: null,
     pinnedDate: null
   };
@@ -156,6 +158,48 @@
   function setStatus(msg, kind = 'info') {
     const icon = kind === 'error' ? '⚠️' : kind === 'ok' ? '✅' : 'ℹ️';
     statusEl.innerHTML = `<strong>${icon}</strong>&nbsp;${escapeHtml(msg)}`;
+  }
+
+  // --- German nationwide public holidays (Feiertage) ---
+  // We include the common nationwide ones:
+  // Neujahr, Karfreitag, Ostermontag, Tag der Arbeit, Christi Himmelfahrt, Pfingstmontag,
+  // Tag der Deutschen Einheit, 1. Weihnachtstag, 2. Weihnachtstag.
+  function computeEasterSunday(year) {
+    // Meeus/Jones/Butcher algorithm (Gregorian)
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31); // 3=March, 4=April
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(year, month - 1, day);
+  }
+
+  function buildNationwideHolidays(year) {
+    const map = new Map();
+    const add = (d, name) => map.set(isoDate(d), name);
+
+    add(new Date(year, 0, 1), 'Neujahr');
+    add(new Date(year, 4, 1), 'Tag der Arbeit');
+    add(new Date(year, 9, 3), 'Tag der Deutschen Einheit');
+    add(new Date(year, 11, 25), '1. Weihnachtstag');
+    add(new Date(year, 11, 26), '2. Weihnachtstag');
+
+    const easter = computeEasterSunday(year);
+    add(addDays(easter, -2), 'Karfreitag');
+    add(addDays(easter, 1), 'Ostermontag');
+    add(addDays(easter, 39), 'Christi Himmelfahrt');
+    add(addDays(easter, 50), 'Pfingstmontag');
+
+    return map;
   }
 
   // --- UI init ---
@@ -325,12 +369,14 @@
         appState.holidaysByState.set(code, DATA_PROVIDER.normalizeStateArray(arr));
       }
 
+      appState.publicHolidays = buildNationwideHolidays(appState.year);
+
       buildDayMap();
       renderLegend();
       renderHeatmap();
 
       const totalPeriods = Array.from(appState.holidaysByState.values()).reduce((a, x) => a + (x?.length ?? 0), 0);
-      setStatus(`Loaded ./data/holidays-${appState.year}.json • ${totalPeriods} holiday periods.`, 'ok');
+      setStatus(`Loaded ./data/holidays-${appState.year}.json • ${totalPeriods} holiday periods • ${appState.publicHolidays.size} nationwide holidays.`, 'ok');
 
     } catch (e) {
       console.error(e);
@@ -345,10 +391,13 @@
 
     const dayMap = new Map();
     for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
-      dayMap.set(isoDate(d), {
+      const key = isoDate(d);
+      dayMap.set(key, {
         states: new Set(),
         holidayNamesByState: new Map(),
-        selectedHas: false
+        selectedHas: false,
+        isPublicHoliday: appState.publicHolidays.has(key),
+        publicHolidayName: appState.publicHolidays.get(key) ?? null
       });
     }
 
@@ -361,7 +410,7 @@
 
         const last = CONFIG.inclusiveEnd ? e : addDays(e, -1);
         for (let d = new Date(s); d <= last; d = addDays(d, 1)) {
-          if (d.getFullYear() != year) continue;
+          if (d.getFullYear() !== year) continue;
           const key = isoDate(d);
           const slot = dayMap.get(key);
           if (!slot) continue;
@@ -388,37 +437,52 @@
   }
 
   // --- Rendering ---
-  function levelColor(level) {
-    switch (level) {
-      case 0: return 'rgba(255,255,255,0.03)';
-      case 1: return 'var(--scale1)';
-      case 2: return 'var(--scale2)';
-      case 3: return 'var(--scale3)';
-      case 4: return 'var(--scale4)';
-      case 5: return 'var(--scale5)';
-      default: return 'var(--scale5)';
-    }
-  }
-
   function renderLegend() {
-    const cells = Array.from({ length: CONFIG.levels }, (_, i) => `<div class="legend__cell" style="background:${levelColor(i)}"></div>`).join('');
+    const blueCells = Array.from({ length: CONFIG.levels }, (_, i) => `<div class="legend__cell" style="background:${blueColor(i)}"></div>`).join('');
+    const yellowCells = Array.from({ length: CONFIG.levels }, (_, i) => `<div class="legend__cell" style="background:${yellowColor(i)}"></div>`).join('');
+
     legendEl.innerHTML = `
       <div class="legend__row">
         <div class="legend__label">Overlap</div>
-        <div class="legend__cells">${cells}</div>
-        <div class="legend__tag">low → high</div>
+        <div class="legend__cells">${blueCells}</div>
+        <div class="legend__tag">blue</div>
       </div>
       <div class="legend__row">
-        <div class="legend__cell" style="background: var(--selected); border-color: rgba(0,0,0,0.25)"></div>
-        <div class="legend__label">Selected Bundesland</div>
+        <div class="legend__label">Selected</div>
+        <div class="legend__cells">${yellowCells}</div>
+        <div class="legend__tag">yellow</div>
       </div>
       <div class="legend__row">
-        <div class="legend__cell" style="background: var(--selected); border-color: rgba(0,0,0,0.25); position: relative;">
-          <span style="position:absolute; inset:0; background: var(--scale4); opacity:.38; border-radius:4px;"></span>
+        <div class="legend__cell" style="background: var(--blue3); position: relative;">
+          <span style="position:absolute; inset:0; background: repeating-linear-gradient(135deg, rgba(255,138,42,0) 0px, rgba(255,138,42,0) 6px, rgba(255,138,42,0.55) 6px, rgba(255,138,42,0.55) 9px); border-radius:4px; opacity:.55"></span>
         </div>
-        <div class="legend__label">Selected + overlap</div>
+        <div class="legend__label">Feiertag (DE)</div>
       </div>
     `;
+  }
+
+  function blueColor(level) {
+    switch (level) {
+      case 0: return 'rgba(255,255,255,0.03)';
+      case 1: return 'var(--blue1)';
+      case 2: return 'var(--blue2)';
+      case 3: return 'var(--blue3)';
+      case 4: return 'var(--blue4)';
+      case 5: return 'var(--blue5)';
+      default: return 'var(--blue5)';
+    }
+  }
+
+  function yellowColor(level) {
+    switch (level) {
+      case 0: return 'var(--yellow0)';
+      case 1: return 'var(--yellow1)';
+      case 2: return 'var(--yellow2)';
+      case 3: return 'var(--yellow3)';
+      case 4: return 'var(--yellow4)';
+      case 5: return 'var(--yellow5)';
+      default: return 'var(--yellow5)';
+    }
   }
 
   function computeLevel(count, maxCount) {
@@ -428,35 +492,32 @@
     return clamp(scaled, 1, top);
   }
 
-  function cssVarForLevel(level) {
-    const root = getComputedStyle(document.documentElement);
-    switch (level) {
-      case 0: return 'rgba(255,255,255,0.03)';
-      case 1: return root.getPropertyValue('--scale1').trim() || '#20305b';
-      case 2: return root.getPropertyValue('--scale2').trim() || '#2a3d70';
-      case 3: return root.getPropertyValue('--scale3').trim() || '#355189';
-      case 4: return root.getPropertyValue('--scale4').trim() || '#4367a8';
-      case 5: return root.getPropertyValue('--scale5').trim() || '#5580c8';
-      default: return root.getPropertyValue('--scale5').trim() || '#5580c8';
-    }
-  }
-
-  function renderMonthLabels(yearStartMonday) {
+  function renderMonthLabels(gridStartMonday) {
+    // Place labels at mid-month (15th) week to center them.
     const year = appState.year;
-    const firstOfMonth = Array.from({ length: 12 }, (_, m) => new Date(year, m, 1));
-
-    const positions = firstOfMonth.map(d => {
-      const weekStart = startOfWeekMonday(d);
-      const idx = Math.round((weekStart - yearStartMonday) / (7 * 86400000));
-      return { idx: clamp(idx, 0, 52), label: monthShort(d.getMonth()) };
-    });
-
     const cols = Array.from({ length: 53 }, () => '');
-    const seen = new Set();
-    for (const p of positions) {
-      if (seen.has(p.idx)) continue;
-      seen.add(p.idx);
-      cols[p.idx] = p.label;
+    const used = new Set();
+
+    for (let m = 0; m < 12; m++) {
+      const mid = new Date(year, m, 15);
+      const wk = startOfWeekMonday(mid);
+      const idx = Math.round((wk - gridStartMonday) / (7 * 86400000));
+      let pos = clamp(idx, 0, 52);
+
+      // resolve collisions by shifting
+      if (used.has(pos)) {
+        let found = false;
+        for (let step = 1; step < 4; step++) {
+          if (pos + step <= 52 && !used.has(pos + step)) { pos = pos + step; found = true; break; }
+          if (pos - step >= 0 && !used.has(pos - step)) { pos = pos - step; found = true; break; }
+        }
+        if (!found) {
+          // give up; keep original
+        }
+      }
+
+      used.add(pos);
+      cols[pos] = monthShort(m);
     }
 
     monthLabelsEl.innerHTML = cols.map(t => `<div>${escapeHtml(t)}</div>`).join('');
@@ -488,27 +549,32 @@
       cell.dataset.date = key;
       cell.style.gridRow = String(weekdayMon0 + 1);
 
+      // Weekend flag (Sat=5, Sun=6 in Mon0 system)
+      if (weekdayMon0 >= 5) cell.classList.add('cell--weekend');
+
       if (!inYear) {
         cell.style.opacity = '0.25';
         cell.style.cursor = 'default';
         cell.dataset.level = '0';
+        cell.dataset.palette = 'blue';
       } else {
         const slot = appState.dayMap.get(key);
         const count = slot ? slot.states.size : 0;
         const level = computeLevel(count, maxOverlap);
-        cell.dataset.level = String(level);
 
         const selectedHas = slot?.selectedHas ?? false;
-        if (selectedHas) {
-          cell.classList.add('cell--selected');
-          // When there is overlap, paint overlay with opacity via CSS ::after
-          if (count > 0) {
-            cell.style.setProperty('--overlay', cssVarForLevel(level));
-            // keep data-level for legend/tooltip, but base color is selected
-          } else {
-            cell.style.setProperty('--overlay', 'transparent');
-            cell.dataset.level = '0';
-          }
+        cell.dataset.level = String(level);
+        cell.dataset.palette = selectedHas ? 'yellow' : 'blue';
+
+        // If selected has holiday but overlap=0, keep a subtle yellow0
+        if (selectedHas && count === 0) {
+          cell.dataset.level = '0';
+          cell.dataset.palette = 'yellow';
+        }
+
+        // Public holiday overlay
+        if (slot?.isPublicHoliday) {
+          cell.classList.add('cell--publicHoliday');
         }
 
         // Tooltip handlers
@@ -565,10 +631,15 @@
       ? `<div class="t-row"><strong>Selected:</strong> ${escapeHtml(stateName(appState.selected))} (${selectedNames.map(escapeHtml).join(', ') || 'holiday'})</div>`
       : `<div class="t-row"><strong>Selected:</strong> ${escapeHtml(stateName(appState.selected))} (no holiday)</div>`;
 
+    const feiertag = slot.isPublicHoliday
+      ? `<div class="t-row" style="margin-top:6px"><span class="pill pill--holiday">Feiertag (DE): ${escapeHtml(slot.publicHolidayName)}</span></div>`
+      : '';
+
     tooltipEl.innerHTML = `
       <div class="t-title">${escapeHtml(formatDate(dateIso))}</div>
       <div class="t-row"><strong>Overlap (included):</strong> ${count} Bundesländer on holiday</div>
       ${selectedLine}
+      ${feiertag}
       <div class="t-row" style="margin-top:6px"><strong>Included states on holiday:</strong></div>
       <div class="t-row">${pills}${more}</div>
       <div class="t-row" style="margin-top:6px">${pinned ? 'Pinned (click again to unpin)' : 'Click to pin'}</div>

@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -11,7 +10,7 @@
   <header class="header">
     <div class="title">
       <h1>German School Holidays Heatmap</h1>
-      <p class="subtitle">Overlap intensity = number of included Bundesländer on holiday. Select a Bundesland to highlight its holidays and view raw dates.</p>
+      <p class="subtitle">Blue = overlap of included Bundesländer. Yellow = selected Bundesland (shaded by overlap). Orange hatch = nationwide public holidays (Feiertage).</p>
     </div>
 
     <div class="controls">
@@ -42,7 +41,7 @@
     <section class="panel side">
       <div class="panel__header">
         <h2>Included Bundesländer</h2>
-        <p class="hint">Affects overlap calculation (heat intensity).</p>
+        <p class="hint">Affects overlap calculation (blue intensity).</p>
       </div>
       <div id="stateCheckboxes" class="checkboxes" aria-label="Bundesländer checkboxes"></div>
     </section>
@@ -51,19 +50,26 @@
       <div class="panel__header">
         <div class="panel__headerLeft">
           <h2 id="heatmapTitle">Heatmap</h2>
-          <p class="hint">Monday-first weeks. Hover a day for details; click to pin tooltip.</p>
+          <p class="hint">Weeks start on Monday. Weekends are slightly more saturated.</p>
         </div>
         <div class="legend" id="legend"></div>
       </div>
 
       <div class="heatmapWrap">
         <div class="monthLabels" id="monthLabels" aria-hidden="true"></div>
-        <div class="dayLabels" aria-hidden="true">
-          <div>Mon</div>
-          <div>Wed</div>
-          <div>Fri</div>
+
+        <div class="axes">
+          <div class="dayLabels" aria-hidden="true">
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+            <div>Sun</div>
+          </div>
+          <div id="heatmap" class="heatmap" aria-label="Holiday heatmap"></div>
         </div>
-        <div id="heatmap" class="heatmap" aria-label="Holiday heatmap"></div>
       </div>
 
       <div class="footnotes">
