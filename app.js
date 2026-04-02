@@ -1,17 +1,19 @@
 /*
-  DE Schulferien heatmap (static JSON version)
+  Schulferien-Heatmaps (2026–2028) – statische JSON-Version
 
-  New in this iteration:
-  - Axis Mon..Sun (Monday-first)
-  - Month labels centered per month (placed at mid-month week)
-  - Weekends slightly more saturated
-  - Blue palette for overlap (included states)
-  - Yellow palette for selected Bundesland days (shade uses overlap level)
-  - Nationwide public holidays (Feiertage) shown with orange hatch overlay
+  Änderungen:
+  - Jahres-Dropdown entfernt, stattdessen 3 Heatmaps (2026, 2027, 2028)
+  - Große Jahreszahl rechts im jeweiligen Heatmap-Block (Fade-in bei Hover)
+  - Dateiname nicht mehr in der UI (nur console)
+  - Zusammenfassung (Ferienzeiträume + Feiertage) neben Alle/Keine/Neu laden
+  - Detailansicht enthält zusätzlich bundesweite Feiertage
+  - "Click to pin" entfernt (Tooltip nur Hover)
 */
 
 (() => {
   'use strict';
+
+  const YEARS = [2026, 2027, 2028];
 
   const STATES = [
     { code: 'bw', name: 'Baden-Württemberg' },
@@ -33,17 +35,16 @@
   ];
 
   // --- DOM ---
-  const yearSelect = document.getElementById('yearSelect');
   const stateSelect = document.getElementById('stateSelect');
   const stateCheckboxes = document.getElementById('stateCheckboxes');
-  const heatmapEl = document.getElementById('heatmap');
-  const monthLabelsEl = document.getElementById('monthLabels');
+  const heatmapsWrap = document.getElementById('heatmapsWrap');
   const legendEl = document.getElementById('legend');
   const statusEl = document.getElementById('status');
   const tooltipEl = document.getElementById('tooltip');
   const chipIncluded = document.getElementById('chipIncluded');
   const chipSelected = document.getElementById('chipSelected');
   const chipScale = document.getElementById('chipScale');
+  const summaryEl = document.getElementById('summary');
 
   const showDetailsBtn = document.getElementById('showDetailsBtn');
   const selectAllBtn = document.getElementById('selectAllBtn');
@@ -58,7 +59,6 @@
   const modalBody = document.getElementById('modalBody');
 
   const CONFIG = {
-    levels: 6,          // 0..5
     tooltipOffset: 14,
     inclusiveEnd: true,
     defaultIncluded: new Set(STATES.map(s => s.code)),
@@ -67,18 +67,19 @@
 
   // --- Static JSON provider ---
   const DATA_PROVIDER = {
-    async fetchAllStates(year) {
+    async fetchYear(year) {
       const url = `./data/holidays-${encodeURIComponent(year)}.json`;
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) {
         const txt = await res.text().catch(() => '');
-        throw new Error(`Failed to load ${url}: ${res.status} ${res.statusText} ${txt}`);
+        throw new Error(`Datei konnte nicht geladen werden: ${url} (${res.status} ${res.statusText}) ${txt}`);
       }
       const data = await res.json();
       if (!data || typeof data !== 'object' || !data.states || typeof data.states !== 'object') {
-        throw new Error(`Invalid JSON structure in ${url}. Expected { meta, states }.`);
+        throw new Error(`Ungültiges JSON-Format in ${url}. Erwartet: { meta, states }.`);
       }
-      return data;
+      console.info('[Daten geladen]', url);
+      return { year, data };
     },
     normalizeStateArray(arr) {
       if (!Array.isArray(arr)) return [];
@@ -93,14 +94,20 @@
   };
 
   const appState = {
-    year: new Date().getFullYear(),
     selected: CONFIG.defaultSelected,
     included: new Set(CONFIG.defaultIncluded),
-    holidaysByState: new Map(),
-    dayMap: new Map(),
-    publicHolidays: new Map(), // iso -> name
-    pinnedCell: null,
-    pinnedDate: null
+
+    // per year
+    holidaysByYear: new Map(),        // year -> Map(stateCode -> periods[])
+    publicHolidaysByYear: new Map(),  // year -> Map(dateIso -> name)
+    dayMapByYear: new Map(),          // year -> Map(dateIso -> slot)
+    maxOverlapByYear: new Map(),
+
+    globalMaxOverlap: 0,
+    totalPeriodsByYear: new Map(),
+
+    // rendered heatmap refs
+    renderTargets: new Map()          // year -> { blockEl, monthLabelsEl, heatmapEl }
   };
 
   // --- Utils ---
@@ -122,10 +129,9 @@
     return x;
   }
 
-  // Monday-first start of week
   function startOfWeekMonday(d) {
     const x = new Date(d);
-    const day = x.getDay(); // Sun=0..Sat=6
+    const day = x.getDay();
     const diff = (day === 0 ? -6 : 1) - day;
     x.setDate(x.getDate() + diff);
     x.setHours(0,0,0,0);
@@ -147,12 +153,12 @@
 
   function formatDate(iso) {
     const d = parseIso(iso);
-    return d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: '2-digit' });
+    return d.toLocaleDateString('de-DE', { weekday: 'short', year: 'numeric', month: 'short', day: '2-digit' });
   }
 
   function monthShort(monthIndex) {
     const d = new Date(2020, monthIndex, 1);
-    return d.toLocaleDateString(undefined, { month: 'short' });
+    return d.toLocaleDateString('de-DE', { month: 'short' });
   }
 
   function setStatus(msg, kind = 'info') {
@@ -160,12 +166,45 @@
     statusEl.innerHTML = `<strong>${icon}</strong>&nbsp;${escapeHtml(msg)}`;
   }
 
+  // --- Color scales (per additional state -> brighter) ---
+  function colorForCount(count, max, palette, isWeekend) {
+    if (!max || max <= 0) return 'rgba(255,255,255,0.03)';
+
+    const ratio = clamp(count / max, 0, 1);
+
+    let h, sMin, sMax, lMin, lMax;
+    if (palette === 'yellow') {
+      h = 46;
+      sMin = 78;
+      sMax = 92;
+      lMin = 22;
+      lMax = 62;
+    } else {
+      h = 217;
+      sMin = 48;
+      sMax = 72;
+      lMin = 16;
+      lMax = 56;
+    }
+
+    let s = sMin + (sMax - sMin) * ratio;
+    let l = lMin + (lMax - lMin) * ratio;
+
+    if (isWeekend) {
+      s = clamp(s * 1.08, 0, 100);
+      l = clamp(l + 1.2, 0, 100);
+    }
+
+    if (count === 0) {
+      if (palette === 'yellow') return 'hsl(46, 42%, 20%)';
+      return 'rgba(255,255,255,0.03)';
+    }
+
+    return `hsl(${h}, ${s.toFixed(1)}%, ${l.toFixed(1)}%)`;
+  }
+
   // --- German nationwide public holidays (Feiertage) ---
-  // We include the common nationwide ones:
-  // Neujahr, Karfreitag, Ostermontag, Tag der Arbeit, Christi Himmelfahrt, Pfingstmontag,
-  // Tag der Deutschen Einheit, 1. Weihnachtstag, 2. Weihnachtstag.
   function computeEasterSunday(year) {
-    // Meeus/Jones/Butcher algorithm (Gregorian)
     const a = year % 19;
     const b = Math.floor(year / 100);
     const c = year % 100;
@@ -178,7 +217,7 @@
     const k = c % 4;
     const l = (32 + 2 * e + 2 * i - h - k) % 7;
     const m = Math.floor((a + 11 * h + 22 * l) / 451);
-    const month = Math.floor((h + l - 7 * m + 114) / 31); // 3=March, 4=April
+    const month = Math.floor((h + l - 7 * m + 114) / 31);
     const day = ((h + l - 7 * m + 114) % 31) + 1;
     return new Date(year, month - 1, day);
   }
@@ -203,28 +242,19 @@
   }
 
   // --- UI init ---
-  function initYearSelect() {
-    const now = new Date().getFullYear();
-    const years = [now - 1, now, now + 1, now + 2];
-    yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
-    yearSelect.value = String(appState.year);
-    yearSelect.addEventListener('change', () => {
-      appState.year = Number(yearSelect.value);
-      reloadAll();
-    });
-  }
-
   function initStateSelect() {
     stateSelect.innerHTML = STATES.map(s => `<option value="${s.code}">${escapeHtml(s.name)}</option>`).join('');
     stateSelect.value = appState.selected;
+
     stateSelect.addEventListener('change', () => {
       appState.selected = stateSelect.value;
-      chipSelected.textContent = `Selected: ${stateName(appState.selected)}`;
-      buildDayMap();
-      renderHeatmap();
+      chipSelected.textContent = `Ausgewählt: ${stateName(appState.selected)}`;
+      rebuildAllDayMaps();
+      renderLegend();
+      renderAllHeatmaps();
     });
 
-    showDetailsBtn.addEventListener('click', () => openModalForSelected());
+    showDetailsBtn.addEventListener('click', openModalForSelected);
   }
 
   function initCheckboxes() {
@@ -256,9 +286,10 @@
         if (cb.checked) appState.included.add(s.code);
         else appState.included.delete(s.code);
 
-        chipIncluded.textContent = `Included: ${appState.included.size} / ${STATES.length}`;
-        buildDayMap();
-        renderHeatmap();
+        chipIncluded.textContent = `Einbezogen: ${appState.included.size} / ${STATES.length}`;
+        rebuildAllDayMaps();
+        renderLegend();
+        renderAllHeatmaps();
       });
 
       row.appendChild(left);
@@ -269,21 +300,23 @@
     selectAllBtn.addEventListener('click', () => {
       appState.included = new Set(STATES.map(s => s.code));
       syncCheckboxes();
-      buildDayMap();
-      renderHeatmap();
+      rebuildAllDayMaps();
+      renderLegend();
+      renderAllHeatmaps();
     });
 
     selectNoneBtn.addEventListener('click', () => {
       appState.included = new Set();
       syncCheckboxes();
-      buildDayMap();
-      renderHeatmap();
+      rebuildAllDayMaps();
+      renderLegend();
+      renderAllHeatmaps();
     });
 
-    reloadBtn.addEventListener('click', () => reloadAll());
+    reloadBtn.addEventListener('click', reloadAll);
 
-    chipIncluded.textContent = `Included: ${appState.included.size} / ${STATES.length}`;
-    chipSelected.textContent = `Selected: ${stateName(appState.selected)}`;
+    chipIncluded.textContent = `Einbezogen: ${appState.included.size} / ${STATES.length}`;
+    chipSelected.textContent = `Ausgewählt: ${stateName(appState.selected)}`;
   }
 
   function syncCheckboxes() {
@@ -291,7 +324,7 @@
       const cb = document.getElementById(`cb-${s.code}`);
       if (cb) cb.checked = appState.included.has(s.code);
     }
-    chipIncluded.textContent = `Included: ${appState.included.size} / ${STATES.length}`;
+    chipIncluded.textContent = `Einbezogen: ${appState.included.size} / ${STATES.length}`;
   }
 
   // --- Modal ---
@@ -320,29 +353,51 @@
 
   function openModalForSelected() {
     const code = appState.selected;
-    const items = appState.holidaysByState.get(code) ?? [];
 
-    const meta = `Year ${appState.year} • ${items.length} holiday periods`;
+    const blocks = YEARS.map(year => {
+      const periods = appState.holidaysByYear.get(year)?.get(code) ?? [];
+      const feiertage = Array.from(appState.publicHolidaysByYear.get(year)?.entries() ?? []).sort((a,b) => a[0].localeCompare(b[0]));
 
-    const cards = items
-      .slice()
-      .sort((a,b) => a.start.localeCompare(b.start))
-      .map(h => {
-        const n = escapeHtml(h.name);
-        const range = `${escapeHtml(h.start)} → ${escapeHtml(h.end)}`;
-        const days = countDaysInclusive(h.start, h.end);
-        return `
-          <div class="holidayCard">
-            <div class="name">${n}</div>
-            <div class="range">${range} <span class="muted">(${days} days)</span></div>
-          </div>
-        `;
-      })
-      .join('');
+      const ferienCards = periods
+        .slice()
+        .sort((a,b) => a.start.localeCompare(b.start))
+        .map(h => {
+          const n = escapeHtml(h.name);
+          const range = `${escapeHtml(h.start)} → ${escapeHtml(h.end)}`;
+          const days = countDaysInclusive(h.start, h.end);
+          return `
+            <div class="holidayCard">
+              <div class="name">${n}</div>
+              <div class="range">${range} <span class="muted">(${days} Tage)</span></div>
+            </div>
+          `;
+        })
+        .join('');
 
-    const body = cards || `<div class="holidayCard"><div class="name">No data</div><div class="range muted">No holiday periods found for this Bundesland in your JSON file.</div></div>`;
+      const feiertagCards = feiertage
+        .map(([iso, name]) => {
+          return `
+            <div class="holidayCard">
+              <div class="name">${escapeHtml(name)}</div>
+              <div class="range">${escapeHtml(iso)}</div>
+            </div>
+          `;
+        })
+        .join('');
 
-    openModal(`${stateName(code)} – holidays`, meta, body);
+      return `
+        <div>
+          <div class="sectionTitle">${year} – Ferien (${periods.length})</div>
+          ${ferienCards || `<div class="holidayCard"><div class="name">Keine Daten</div><div class="range muted">Keine Ferienzeiträume im JSON für ${year}.</div></div>`}
+
+          <div class="sectionTitle">${year} – Feiertage (bundesweit) (${feiertage.length})</div>
+          ${feiertagCards || `<div class="holidayCard"><div class="name">Keine Daten</div><div class="range muted">Keine Feiertage berechnet.</div></div>`}
+        </div>
+      `;
+    }).join('');
+
+    const meta = `Ausgewähltes Bundesland: ${stateName(code)} • Jahre: ${YEARS.join(', ')}`;
+    openModal(`${stateName(code)} – Details`, meta, blocks);
   }
 
   function countDaysInclusive(startIso, endIso) {
@@ -352,42 +407,83 @@
     return Math.max(1, days);
   }
 
-  // --- Load + aggregation ---
+  // --- Loading ---
   async function reloadAll() {
-    appState.pinnedCell = null;
-    appState.pinnedDate = null;
     hideTooltip(true);
-
-    setStatus(`Loading local holiday data for ${appState.year} …`);
+    setStatus('Lade lokale Feriendaten …');
 
     try {
-      const payload = await DATA_PROVIDER.fetchAllStates(appState.year);
+      const results = await Promise.all(YEARS.map(y => DATA_PROVIDER.fetchYear(y)));
 
-      appState.holidaysByState = new Map();
-      for (const { code } of STATES) {
-        const arr = payload.states?.[code] ?? [];
-        appState.holidaysByState.set(code, DATA_PROVIDER.normalizeStateArray(arr));
+      // Build per-year maps
+      appState.holidaysByYear = new Map();
+      appState.publicHolidaysByYear = new Map();
+      appState.totalPeriodsByYear = new Map();
+
+      for (const { year, data } of results) {
+        const map = new Map();
+        let total = 0;
+        for (const { code } of STATES) {
+          const arr = data.states?.[code] ?? [];
+          const normalized = DATA_PROVIDER.normalizeStateArray(arr);
+          map.set(code, normalized);
+          total += normalized.length;
+        }
+        appState.holidaysByYear.set(year, map);
+        appState.totalPeriodsByYear.set(year, total);
+        appState.publicHolidaysByYear.set(year, buildNationwideHolidays(year));
       }
 
-      appState.publicHolidays = buildNationwideHolidays(appState.year);
-
-      buildDayMap();
+      rebuildAllDayMaps();
       renderLegend();
-      renderHeatmap();
+      renderAllHeatmaps();
+      updateSummary();
 
-      const totalPeriods = Array.from(appState.holidaysByState.values()).reduce((a, x) => a + (x?.length ?? 0), 0);
-      setStatus(`Loaded ./data/holidays-${appState.year}.json • ${totalPeriods} holiday periods • ${appState.publicHolidays.size} nationwide holidays.`, 'ok');
+      setStatus('Daten geladen.', 'ok');
 
     } catch (e) {
       console.error(e);
-      setStatus(`Failed to load local data: ${e.message}. Ensure ./data/holidays-${appState.year}.json exists and you run a local web server.`, 'error');
+      setStatus(`Konnte lokale Daten nicht laden: ${e.message}. Läuft ein Webserver und existieren alle Dateien?`, 'error');
     }
   }
 
-  function buildDayMap() {
-    const year = appState.year;
+  function updateSummary() {
+    // Summary: periods + public holidays (per year)
+    const parts = YEARS.map(y => {
+      const p = appState.totalPeriodsByYear.get(y) ?? 0;
+      const h = appState.publicHolidaysByYear.get(y)?.size ?? 0;
+      return `${y}: ${p} Ferienzeiträume, ${h} Feiertage`;
+    });
+    summaryEl.textContent = parts.join(' • ');
+  }
+
+  // --- Build day maps per year ---
+  function rebuildAllDayMaps() {
+    appState.dayMapByYear = new Map();
+    appState.maxOverlapByYear = new Map();
+
+    let globalMax = 0;
+
+    for (const year of YEARS) {
+      const dayMap = buildDayMapForYear(year);
+      appState.dayMapByYear.set(year, dayMap);
+
+      let maxOverlap = 0;
+      for (const slot of dayMap.values()) maxOverlap = Math.max(maxOverlap, slot.states.size);
+      appState.maxOverlapByYear.set(year, maxOverlap);
+      globalMax = Math.max(globalMax, maxOverlap);
+    }
+
+    appState.globalMaxOverlap = globalMax;
+    chipScale.textContent = `Skala: 0 → ${globalMax}`;
+  }
+
+  function buildDayMapForYear(year) {
     const start = new Date(year, 0, 1);
     const end = new Date(year, 11, 31);
+
+    const publicHolidays = appState.publicHolidaysByYear.get(year) ?? new Map();
+    const holidaysByState = appState.holidaysByYear.get(year) ?? new Map();
 
     const dayMap = new Map();
     for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
@@ -396,13 +492,13 @@
         states: new Set(),
         holidayNamesByState: new Map(),
         selectedHas: false,
-        isPublicHoliday: appState.publicHolidays.has(key),
-        publicHolidayName: appState.publicHolidays.get(key) ?? null
+        isPublicHoliday: publicHolidays.has(key),
+        publicHolidayName: publicHolidays.get(key) ?? null
       });
     }
 
     for (const { code } of STATES) {
-      const periods = appState.holidaysByState.get(code) ?? [];
+      const periods = holidaysByState.get(code) ?? [];
       for (const p of periods) {
         const s = parseIso(p.start);
         const e = parseIso(p.end);
@@ -427,74 +523,161 @@
       slot.selectedHas = slot.holidayNamesByState.has(appState.selected);
     }
 
-    appState.dayMap = dayMap;
-
-    let maxOverlap = 0;
-    for (const slot of dayMap.values()) maxOverlap = Math.max(maxOverlap, slot.states.size);
-    chipScale.textContent = `Max overlap: ${maxOverlap}`;
-    chipIncluded.textContent = `Included: ${appState.included.size} / ${STATES.length}`;
-    chipSelected.textContent = `Selected: ${stateName(appState.selected)}`;
+    return dayMap;
   }
 
-  // --- Rendering ---
+  // --- Render: create blocks and fill ---
+  function ensureHeatmapBlocks() {
+    if (appState.renderTargets.size) return;
+
+    heatmapsWrap.innerHTML = '';
+    appState.renderTargets = new Map();
+
+    for (const year of YEARS) {
+      const block = document.createElement('div');
+      block.className = 'yearBlock';
+      block.dataset.year = String(year);
+
+      const watermark = document.createElement('div');
+      watermark.className = 'yearWatermark';
+      watermark.textContent = String(year);
+
+      const monthLabels = document.createElement('div');
+      monthLabels.className = 'monthLabels';
+
+      const axes = document.createElement('div');
+      axes.className = 'axes';
+
+      const dayLabels = document.createElement('div');
+      dayLabels.className = 'dayLabels';
+      dayLabels.setAttribute('aria-hidden', 'true');
+      dayLabels.innerHTML = '<div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>';
+
+      const heatmap = document.createElement('div');
+      heatmap.className = 'heatmap';
+      heatmap.setAttribute('aria-label', `Heatmap ${year}`);
+
+      axes.appendChild(dayLabels);
+      axes.appendChild(heatmap);
+
+      block.appendChild(watermark);
+      block.appendChild(monthLabels);
+      block.appendChild(axes);
+
+      heatmapsWrap.appendChild(block);
+
+      appState.renderTargets.set(year, { blockEl: block, monthLabelsEl: monthLabels, heatmapEl: heatmap });
+    }
+  }
+
   function renderLegend() {
-    const blueCells = Array.from({ length: CONFIG.levels }, (_, i) => `<div class="legend__cell" style="background:${blueColor(i)}"></div>`).join('');
-    const yellowCells = Array.from({ length: CONFIG.levels }, (_, i) => `<div class="legend__cell" style="background:${yellowColor(i)}"></div>`).join('');
+    const max = Math.max(0, appState.globalMaxOverlap);
+
+    const steps = max <= 0
+      ? [0]
+      : Array.from(new Set([0, 1, Math.ceil(max/4), Math.ceil(max/2), Math.ceil((3*max)/4), max]))
+          .filter(v => v >= 0 && v <= max)
+          .sort((a,b) => a-b);
+
+    const swatchesBlue = steps.map(v => {
+      const c = colorForCount(v, max || 1, 'blue', false);
+      return `<div class="legend__cell" title="${v}" style="background:${c}"></div>`;
+    }).join('');
+
+    const swatchesYellow = steps.map(v => {
+      const c = colorForCount(v, max || 1, 'yellow', false);
+      return `<div class="legend__cell" title="${v}" style="background:${c}"></div>`;
+    }).join('');
 
     legendEl.innerHTML = `
       <div class="legend__row">
-        <div class="legend__label">Overlap</div>
-        <div class="legend__cells">${blueCells}</div>
-        <div class="legend__tag">blue</div>
+        <div class="legend__label">Überschneidung</div>
+        <div class="legend__cells">${swatchesBlue}</div>
+        <div class="legend__tag">0 → ${max}</div>
       </div>
       <div class="legend__row">
-        <div class="legend__label">Selected</div>
-        <div class="legend__cells">${yellowCells}</div>
-        <div class="legend__tag">yellow</div>
+        <div class="legend__label">Ausgewählt</div>
+        <div class="legend__cells">${swatchesYellow}</div>
+        <div class="legend__tag">0 → ${max}</div>
       </div>
       <div class="legend__row">
-        <div class="legend__cell" style="background: var(--blue3); position: relative;">
-          <span style="position:absolute; inset:0; background: repeating-linear-gradient(135deg, rgba(255,138,42,0) 0px, rgba(255,138,42,0) 6px, rgba(255,138,42,0.55) 6px, rgba(255,138,42,0.55) 9px); border-radius:4px; opacity:.55"></span>
+        <div class="legend__cell" style="background: ${colorForCount(Math.ceil(max/2)||1, max||1, 'blue', false)}; position: relative;">
+          <span style="position:absolute; inset:0; background: repeating-linear-gradient(135deg, rgba(255,138,42,0) 0px, rgba(255,138,42,0) 6px, rgba(255,138,42,0.60) 6px, rgba(255,138,42,0.60) 9px); border-radius:4px; opacity:.60"></span>
         </div>
-        <div class="legend__label">Feiertag (DE)</div>
+        <div class="legend__label">Feiertag (bundesweit)</div>
       </div>
     `;
   }
 
-  function blueColor(level) {
-    switch (level) {
-      case 0: return 'rgba(255,255,255,0.03)';
-      case 1: return 'var(--blue1)';
-      case 2: return 'var(--blue2)';
-      case 3: return 'var(--blue3)';
-      case 4: return 'var(--blue4)';
-      case 5: return 'var(--blue5)';
-      default: return 'var(--blue5)';
+  function renderAllHeatmaps() {
+    ensureHeatmapBlocks();
+
+    for (const year of YEARS) {
+      const target = appState.renderTargets.get(year);
+      if (!target) continue;
+      renderYearHeatmap(year, target.monthLabelsEl, target.heatmapEl);
     }
   }
 
-  function yellowColor(level) {
-    switch (level) {
-      case 0: return 'var(--yellow0)';
-      case 1: return 'var(--yellow1)';
-      case 2: return 'var(--yellow2)';
-      case 3: return 'var(--yellow3)';
-      case 4: return 'var(--yellow4)';
-      case 5: return 'var(--yellow5)';
-      default: return 'var(--yellow5)';
+  function renderYearHeatmap(year, monthLabelsEl, heatmapEl) {
+    const start = new Date(year, 0, 1);
+    const end = new Date(year, 11, 31);
+
+    const gridStart = startOfWeekMonday(start);
+    const gridEnd = addDays(startOfWeekMonday(addDays(end, 1)), 6);
+
+    // use global max so colors comparable across years
+    const max = Math.max(1, appState.globalMaxOverlap || 1);
+
+    renderMonthLabels(year, gridStart, monthLabelsEl);
+
+    const dayMap = appState.dayMapByYear.get(year);
+    heatmapEl.innerHTML = '';
+    const frag = document.createDocumentFragment();
+
+    for (let d = new Date(gridStart); d <= gridEnd; d = addDays(d, 1)) {
+      const key = isoDate(d);
+      const inYear = d.getFullYear() === year;
+      const weekdayMon0 = (d.getDay() + 6) % 7;
+      const isWeekend = weekdayMon0 >= 5;
+
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.style.gridRow = String(weekdayMon0 + 1);
+
+      if (isWeekend) cell.classList.add('cell--weekend');
+
+      if (!inYear) {
+        cell.style.opacity = '0.25';
+        cell.style.backgroundColor = 'rgba(255,255,255,0.03)';
+      } else {
+        const slot = dayMap?.get(key);
+        const count = slot ? slot.states.size : 0;
+        const selectedHas = slot?.selectedHas ?? false;
+
+        const palette = selectedHas ? 'yellow' : 'blue';
+        cell.style.backgroundColor = colorForCount(count, max, palette, isWeekend);
+
+        if (slot?.isPublicHoliday) cell.classList.add('cell--publicHoliday');
+
+        cell.addEventListener('mouseenter', (e) => {
+          showTooltipForDate(year, key, e.clientX, e.clientY);
+        });
+        cell.addEventListener('mousemove', (e) => {
+          moveTooltip(e.clientX, e.clientY);
+        });
+        cell.addEventListener('mouseleave', () => {
+          hideTooltip();
+        });
+      }
+
+      frag.appendChild(cell);
     }
+
+    heatmapEl.appendChild(frag);
   }
 
-  function computeLevel(count, maxCount) {
-    if (count <= 0 || maxCount <= 0) return 0;
-    const top = CONFIG.levels - 1;
-    const scaled = Math.ceil((count / maxCount) * top);
-    return clamp(scaled, 1, top);
-  }
-
-  function renderMonthLabels(gridStartMonday) {
-    // Place labels at mid-month (15th) week to center them.
-    const year = appState.year;
+  function renderMonthLabels(year, gridStartMonday, monthLabelsEl) {
     const cols = Array.from({ length: 53 }, () => '');
     const used = new Set();
 
@@ -504,15 +687,10 @@
       const idx = Math.round((wk - gridStartMonday) / (7 * 86400000));
       let pos = clamp(idx, 0, 52);
 
-      // resolve collisions by shifting
       if (used.has(pos)) {
-        let found = false;
         for (let step = 1; step < 4; step++) {
-          if (pos + step <= 52 && !used.has(pos + step)) { pos = pos + step; found = true; break; }
-          if (pos - step >= 0 && !used.has(pos - step)) { pos = pos - step; found = true; break; }
-        }
-        if (!found) {
-          // give up; keep original
+          if (pos + step <= 52 && !used.has(pos + step)) { pos = pos + step; break; }
+          if (pos - step >= 0 && !used.has(pos - step)) { pos = pos - step; break; }
         }
       }
 
@@ -523,126 +701,34 @@
     monthLabelsEl.innerHTML = cols.map(t => `<div>${escapeHtml(t)}</div>`).join('');
   }
 
-  function renderHeatmap() {
-    const year = appState.year;
-    const start = new Date(year, 0, 1);
-    const end = new Date(year, 11, 31);
-
-    const gridStart = startOfWeekMonday(start);
-    const gridEnd = addDays(startOfWeekMonday(addDays(end, 1)), 6);
-
-    let maxOverlap = 0;
-    for (const slot of appState.dayMap.values()) maxOverlap = Math.max(maxOverlap, slot.states.size);
-
-    renderMonthLabels(gridStart);
-
-    heatmapEl.innerHTML = '';
-    const frag = document.createDocumentFragment();
-
-    for (let d = new Date(gridStart); d <= gridEnd; d = addDays(d, 1)) {
-      const key = isoDate(d);
-      const inYear = d.getFullYear() === year;
-      const weekdayMon0 = (d.getDay() + 6) % 7; // Mon=0..Sun=6
-
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.dataset.date = key;
-      cell.style.gridRow = String(weekdayMon0 + 1);
-
-      // Weekend flag (Sat=5, Sun=6 in Mon0 system)
-      if (weekdayMon0 >= 5) cell.classList.add('cell--weekend');
-
-      if (!inYear) {
-        cell.style.opacity = '0.25';
-        cell.style.cursor = 'default';
-        cell.dataset.level = '0';
-        cell.dataset.palette = 'blue';
-      } else {
-        const slot = appState.dayMap.get(key);
-        const count = slot ? slot.states.size : 0;
-        const level = computeLevel(count, maxOverlap);
-
-        const selectedHas = slot?.selectedHas ?? false;
-        cell.dataset.level = String(level);
-        cell.dataset.palette = selectedHas ? 'yellow' : 'blue';
-
-        // If selected has holiday but overlap=0, keep a subtle yellow0
-        if (selectedHas && count === 0) {
-          cell.dataset.level = '0';
-          cell.dataset.palette = 'yellow';
-        }
-
-        // Public holiday overlay
-        if (slot?.isPublicHoliday) {
-          cell.classList.add('cell--publicHoliday');
-        }
-
-        // Tooltip handlers
-        cell.addEventListener('mouseenter', (e) => {
-          if (appState.pinnedDate && appState.pinnedDate === key) return;
-          showTooltipForDate(key, e.clientX, e.clientY);
-        });
-        cell.addEventListener('mousemove', (e) => {
-          if (appState.pinnedDate && appState.pinnedDate === key) return;
-          moveTooltip(e.clientX, e.clientY);
-        });
-        cell.addEventListener('mouseleave', () => {
-          if (appState.pinnedDate) return;
-          hideTooltip();
-        });
-
-        cell.addEventListener('click', (e) => {
-          if (appState.pinnedDate === key) {
-            appState.pinnedDate = null;
-            if (appState.pinnedCell) appState.pinnedCell.classList.remove('cell--pinned');
-            appState.pinnedCell = null;
-            hideTooltip(true);
-          } else {
-            if (appState.pinnedCell) appState.pinnedCell.classList.remove('cell--pinned');
-            appState.pinnedDate = key;
-            appState.pinnedCell = cell;
-            cell.classList.add('cell--pinned');
-            showTooltipForDate(key, e.clientX, e.clientY, true);
-          }
-        });
-      }
-
-      frag.appendChild(cell);
-    }
-
-    heatmapEl.appendChild(frag);
-
-    document.getElementById('heatmapTitle').textContent = `Heatmap – ${year} (selected: ${stateName(appState.selected)}, included: ${appState.included.size})`;
-  }
-
-  // --- Tooltip ---
-  function showTooltipForDate(dateIso, x, y, pinned = false) {
-    const slot = appState.dayMap.get(dateIso);
+  // --- Tooltip (no pinning) ---
+  function showTooltipForDate(year, dateIso, x, y) {
+    const dayMap = appState.dayMapByYear.get(year);
+    const slot = dayMap?.get(dateIso);
     if (!slot) return;
 
     const count = slot.states.size;
-    const includedStates = Array.from(slot.states).map(stateName);
+    const includedTotal = appState.included.size;
+
+    const includedStates = Array.from(slot.states).map(stateName).sort((a,b) => a.localeCompare(b));
     const selectedNames = Array.from(slot.holidayNamesByState.get(appState.selected) ?? []).sort();
 
-    const pills = includedStates.slice(0, 10).map(n => `<span class="pill">${escapeHtml(n)}</span>`).join('');
-    const more = includedStates.length > 10 ? `<span class="pill">+${includedStates.length - 10} more</span>` : '';
-
     const selectedLine = slot.selectedHas
-      ? `<div class="t-row"><strong>Selected:</strong> ${escapeHtml(stateName(appState.selected))} (${selectedNames.map(escapeHtml).join(', ') || 'holiday'})</div>`
-      : `<div class="t-row"><strong>Selected:</strong> ${escapeHtml(stateName(appState.selected))} (no holiday)</div>`;
+      ? `<div class="t-row"><strong>Ausgewählt:</strong> ${escapeHtml(stateName(appState.selected))} (${selectedNames.map(escapeHtml).join(', ') || 'Ferien'})</div>`
+      : `<div class="t-row"><strong>Ausgewählt:</strong> ${escapeHtml(stateName(appState.selected))} (keine Ferien)</div>`;
 
     const feiertag = slot.isPublicHoliday
       ? `<div class="t-row" style="margin-top:6px"><span class="pill pill--holiday">Feiertag (DE): ${escapeHtml(slot.publicHolidayName)}</span></div>`
       : '';
 
+    const listAll = includedStates.length ? escapeHtml(includedStates.join(', ')) : '—';
+
     tooltipEl.innerHTML = `
-      <div class="t-title">${escapeHtml(formatDate(dateIso))}</div>
-      <div class="t-row"><strong>Overlap (included):</strong> ${count} Bundesländer on holiday</div>
+      <div class="t-title">${escapeHtml(formatDate(dateIso))} <span class="muted">(${year})</span></div>
+      <div class="t-row"><strong>Bundesländer mit Ferien (einbezogen):</strong> ${count} / ${includedTotal}</div>
       ${selectedLine}
       ${feiertag}
-      <div class="t-row" style="margin-top:6px"><strong>Included states on holiday:</strong></div>
-      <div class="t-row">${pills}${more}</div>
-      <div class="t-row" style="margin-top:6px">${pinned ? 'Pinned (click again to unpin)' : 'Click to pin'}</div>
+      <div class="t-row" style="margin-top:6px"><strong>Liste:</strong> ${listAll}</div>
     `;
 
     tooltipEl.classList.add('visible');
@@ -667,17 +753,14 @@
   }
 
   function hideTooltip(force = false) {
-    if (!force && appState.pinnedDate) return;
     tooltipEl.classList.remove('visible');
     tooltipEl.setAttribute('aria-hidden', 'true');
   }
 
   // --- Boot ---
   function init() {
-    initYearSelect();
     initStateSelect();
     initCheckboxes();
-    renderLegend();
     reloadAll();
   }
 
