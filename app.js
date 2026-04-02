@@ -1,13 +1,14 @@
 /*
   Schulferien-Heatmaps (2026–2028) – statische JSON-Version
 
-  Änderungen:
-  - Jahres-Dropdown entfernt, stattdessen 3 Heatmaps (2026, 2027, 2028)
-  - Große Jahreszahl rechts im jeweiligen Heatmap-Block (Fade-in bei Hover)
-  - Dateiname nicht mehr in der UI (nur console)
-  - Zusammenfassung (Ferienzeiträume + Feiertage) neben Alle/Keine/Neu laden
-  - Detailansicht enthält zusätzlich bundesweite Feiertage
-  - "Click to pin" entfernt (Tooltip nur Hover)
+  Neu:
+  - JSON-Schema unterstützt Feiertage:
+      * feiertage.bundesweit[]
+      * feiertage.regional.<bundesland>[]
+      * optional auch in states[].type="feiertag"
+  - Regionale Feiertage zählen wie ein Ferientag (für das jeweilige Bundesland)
+  - Feiertage des ausgewählten Bundeslandes werden zusätzlich rot schraffiert
+  - Jahreszahl (144px) ist dauerhaft sichtbar (wird nur ausgeblendet, wenn zu wenig Platz)
 */
 
 (() => {
@@ -65,7 +66,7 @@
     defaultSelected: 'be'
   };
 
-  // --- Static JSON provider ---
+  // --- Data provider ---
   const DATA_PROVIDER = {
     async fetchYear(year) {
       const url = `./data/holidays-${encodeURIComponent(year)}.json`;
@@ -81,15 +82,29 @@
       console.info('[Daten geladen]', url);
       return { year, data };
     },
+
     normalizeStateArray(arr) {
       if (!Array.isArray(arr)) return [];
       return arr
         .map(item => ({
+          type: item.type ?? 'ferien',
+          scope: item.scope ?? 'regional',
           name: item.name ?? 'Ferien',
           start: item.start,
           end: item.end
         }))
         .filter(x => x.name && x.start && x.end);
+    },
+
+    normalizeHolidayArray(arr) {
+      if (!Array.isArray(arr)) return [];
+      return arr
+        .map(item => ({
+          type: 'feiertag',
+          name: item.name ?? 'Feiertag',
+          date: item.date
+        }))
+        .filter(x => x.name && x.date);
     }
   };
 
@@ -98,16 +113,13 @@
     included: new Set(CONFIG.defaultIncluded),
 
     // per year
-    holidaysByYear: new Map(),        // year -> Map(stateCode -> periods[])
-    publicHolidaysByYear: new Map(),  // year -> Map(dateIso -> name)
-    dayMapByYear: new Map(),          // year -> Map(dateIso -> slot)
-    maxOverlapByYear: new Map(),
+    eventsByYear: new Map(),     // year -> Map(stateCode -> events[] (ferien + states-feiertag))
+    holidaysByYear: new Map(),   // year -> { bundesweit: Map(date->names[]), regional: Map(state->Map(date->names[])) }
+    dayMapByYear: new Map(),     // year -> Map(dateIso -> slot)
 
     globalMaxOverlap: 0,
-    totalPeriodsByYear: new Map(),
-
-    // rendered heatmap refs
-    renderTargets: new Map()          // year -> { blockEl, monthLabelsEl, heatmapEl }
+    totalEventsByYear: new Map(),
+    renderTargets: new Map()
   };
 
   // --- Utils ---
@@ -166,7 +178,7 @@
     statusEl.innerHTML = `<strong>${icon}</strong>&nbsp;${escapeHtml(msg)}`;
   }
 
-  // --- Color scales (per additional state -> brighter) ---
+  // --- Color scale ---
   function colorForCount(count, max, palette, isWeekend) {
     if (!max || max <= 0) return 'rgba(255,255,255,0.03)';
 
@@ -203,7 +215,7 @@
     return `hsl(${h}, ${s.toFixed(1)}%, ${l.toFixed(1)}%)`;
   }
 
-  // --- German nationwide public holidays (Feiertage) ---
+  // --- Fallback: bundesweite Feiertage berechnen ---
   function computeEasterSunday(year) {
     const a = year % 19;
     const b = Math.floor(year / 100);
@@ -222,9 +234,9 @@
     return new Date(year, month - 1, day);
   }
 
-  function buildNationwideHolidays(year) {
+  function computeStandardBundesweit(year) {
     const map = new Map();
-    const add = (d, name) => map.set(isoDate(d), name);
+    const add = (d, name) => map.set(isoDate(d), [name]);
 
     add(new Date(year, 0, 1), 'Neujahr');
     add(new Date(year, 4, 1), 'Tag der Arbeit');
@@ -355,10 +367,26 @@
     const code = appState.selected;
 
     const blocks = YEARS.map(year => {
-      const periods = appState.holidaysByYear.get(year)?.get(code) ?? [];
-      const feiertage = Array.from(appState.publicHolidaysByYear.get(year)?.entries() ?? []).sort((a,b) => a[0].localeCompare(b[0]));
+      const events = appState.eventsByYear.get(year)?.get(code) ?? [];
+      const ferien = events.filter(e => (e.type ?? 'ferien') === 'ferien');
 
-      const ferienCards = periods
+      const hol = appState.holidaysByYear.get(year);
+      const bundesweit = Array.from(hol?.bundesweit.entries() ?? [])
+        .flatMap(([date, names]) => names.map(n => ({ date, name: n, scope: 'bundesweit' })));
+
+      const regionalMap = hol?.regional.get(code) ?? new Map();
+      const regional = Array.from(regionalMap.entries())
+        .flatMap(([date, names]) => names.map(n => ({ date, name: n, scope: 'regional' })));
+
+      const fromEvents = events
+        .filter(e => e.type === 'feiertag')
+        .map(e => ({ date: e.start, name: e.name, scope: e.scope ?? 'regional' }));
+
+      const feiertage = [...bundesweit, ...regional, ...fromEvents]
+        .filter(x => x.date)
+        .sort((a,b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
+
+      const ferienCards = ferien
         .slice()
         .sort((a,b) => a.start.localeCompare(b.start))
         .map(h => {
@@ -375,11 +403,12 @@
         .join('');
 
       const feiertagCards = feiertage
-        .map(([iso, name]) => {
+        .map(h => {
+          const tag = h.scope === 'bundesweit' ? 'bundesweit' : 'regional';
           return `
             <div class="holidayCard">
-              <div class="name">${escapeHtml(name)}</div>
-              <div class="range">${escapeHtml(iso)}</div>
+              <div class="name">${escapeHtml(h.name)} <span class="muted">(${tag})</span></div>
+              <div class="range">${escapeHtml(h.date)}</div>
             </div>
           `;
         })
@@ -387,11 +416,11 @@
 
       return `
         <div>
-          <div class="sectionTitle">${year} – Ferien (${periods.length})</div>
+          <div class="sectionTitle">${year} – Ferien (${ferien.length})</div>
           ${ferienCards || `<div class="holidayCard"><div class="name">Keine Daten</div><div class="range muted">Keine Ferienzeiträume im JSON für ${year}.</div></div>`}
 
-          <div class="sectionTitle">${year} – Feiertage (bundesweit) (${feiertage.length})</div>
-          ${feiertagCards || `<div class="holidayCard"><div class="name">Keine Daten</div><div class="range muted">Keine Feiertage berechnet.</div></div>`}
+          <div class="sectionTitle">${year} – Feiertage (${feiertage.length})</div>
+          ${feiertagCards || `<div class="holidayCard"><div class="name">Keine Daten</div><div class="range muted">Keine Feiertage im JSON/Regelwerk.</div></div>`}
         </div>
       `;
     }).join('');
@@ -410,28 +439,57 @@
   // --- Loading ---
   async function reloadAll() {
     hideTooltip(true);
-    setStatus('Lade lokale Feriendaten …');
+    setStatus('Lade lokale Daten …');
 
     try {
       const results = await Promise.all(YEARS.map(y => DATA_PROVIDER.fetchYear(y)));
 
-      // Build per-year maps
+      appState.eventsByYear = new Map();
       appState.holidaysByYear = new Map();
-      appState.publicHolidaysByYear = new Map();
-      appState.totalPeriodsByYear = new Map();
+      appState.totalEventsByYear = new Map();
 
       for (const { year, data } of results) {
-        const map = new Map();
-        let total = 0;
+        // states events
+        const stateMap = new Map();
+        let totalEvents = 0;
         for (const { code } of STATES) {
           const arr = data.states?.[code] ?? [];
           const normalized = DATA_PROVIDER.normalizeStateArray(arr);
-          map.set(code, normalized);
-          total += normalized.length;
+          stateMap.set(code, normalized);
+          totalEvents += normalized.length;
         }
-        appState.holidaysByYear.set(year, map);
-        appState.totalPeriodsByYear.set(year, total);
-        appState.publicHolidaysByYear.set(year, buildNationwideHolidays(year));
+        appState.eventsByYear.set(year, stateMap);
+        appState.totalEventsByYear.set(year, totalEvents);
+
+        // feiertage from JSON
+        const bundesweitArr = DATA_PROVIDER.normalizeHolidayArray(data.feiertage?.bundesweit ?? []);
+        const bundesweitMap = new Map();
+        for (const h of bundesweitArr) {
+          if (!bundesweitMap.has(h.date)) bundesweitMap.set(h.date, []);
+          bundesweitMap.get(h.date).push(h.name);
+        }
+
+        const regionalObj = data.feiertage?.regional ?? {};
+        const regionalMap = new Map();
+        for (const { code } of STATES) {
+          const arr = DATA_PROVIDER.normalizeHolidayArray(regionalObj?.[code] ?? []);
+          const map = new Map();
+          for (const h of arr) {
+            if (!map.has(h.date)) map.set(h.date, []);
+            map.get(h.date).push(h.name);
+          }
+          regionalMap.set(code, map);
+        }
+
+        // fallback: if no bundesweit provided, compute default
+        if (bundesweitMap.size === 0) {
+          const computed = computeStandardBundesweit(year);
+          for (const [date, names] of computed.entries()) {
+            bundesweitMap.set(date, names);
+          }
+        }
+
+        appState.holidaysByYear.set(year, { bundesweit: bundesweitMap, regional: regionalMap });
       }
 
       rebuildAllDayMaps();
@@ -443,24 +501,24 @@
 
     } catch (e) {
       console.error(e);
-      setStatus(`Konnte lokale Daten nicht laden: ${e.message}. Läuft ein Webserver und existieren alle Dateien?`, 'error');
+      setStatus(`Konnte lokale Daten nicht laden: ${e.message}.`, 'error');
     }
   }
 
   function updateSummary() {
-    // Summary: periods + public holidays (per year)
     const parts = YEARS.map(y => {
-      const p = appState.totalPeriodsByYear.get(y) ?? 0;
-      const h = appState.publicHolidaysByYear.get(y)?.size ?? 0;
-      return `${y}: ${p} Ferienzeiträume, ${h} Feiertage`;
+      const ev = appState.totalEventsByYear.get(y) ?? 0;
+      const hol = appState.holidaysByYear.get(y);
+      const b = hol?.bundesweit.size ?? 0;
+      const r = Array.from(hol?.regional.values() ?? []).reduce((acc, m) => acc + (m?.size ?? 0), 0);
+      return `${y}: ${ev} Ereignisse, ${b} bundesw. Feiertage, ${r} regionale Feiertage`;
     });
     summaryEl.textContent = parts.join(' • ');
   }
 
-  // --- Build day maps per year ---
+  // --- Day maps ---
   function rebuildAllDayMaps() {
     appState.dayMapByYear = new Map();
-    appState.maxOverlapByYear = new Map();
 
     let globalMax = 0;
 
@@ -470,7 +528,6 @@
 
       let maxOverlap = 0;
       for (const slot of dayMap.values()) maxOverlap = Math.max(maxOverlap, slot.states.size);
-      appState.maxOverlapByYear.set(year, maxOverlap);
       globalMax = Math.max(globalMax, maxOverlap);
     }
 
@@ -482,8 +539,8 @@
     const start = new Date(year, 0, 1);
     const end = new Date(year, 11, 31);
 
-    const publicHolidays = appState.publicHolidaysByYear.get(year) ?? new Map();
-    const holidaysByState = appState.holidaysByYear.get(year) ?? new Map();
+    const holidays = appState.holidaysByYear.get(year) ?? { bundesweit: new Map(), regional: new Map() };
+    const eventsByState = appState.eventsByYear.get(year) ?? new Map();
 
     const dayMap = new Map();
     for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
@@ -491,17 +548,43 @@
       dayMap.set(key, {
         states: new Set(),
         holidayNamesByState: new Map(),
-        selectedHas: false,
-        isPublicHoliday: publicHolidays.has(key),
-        publicHolidayName: publicHolidays.get(key) ?? null
+        selectedHasFeiertag: false,
+        selectedFeiertagNames: []
       });
     }
 
+    // Apply bundesweite Feiertage to all states
+    for (const [dateIso, names] of holidays.bundesweit.entries()) {
+      const slot = dayMap.get(dateIso);
+      if (!slot) continue;
+
+      for (const { code } of STATES) {
+        if (!slot.holidayNamesByState.has(code)) slot.holidayNamesByState.set(code, new Set());
+        for (const n of names) slot.holidayNamesByState.get(code).add(n);
+        if (appState.included.has(code)) slot.states.add(code);
+      }
+
+      // selected state gets red hatch
+      slot.selectedHasFeiertag = true;
+      slot.selectedFeiertagNames.push(...names);
+    }
+
+    // Apply per-state events (ferien + states-feiertag)
     for (const { code } of STATES) {
-      const periods = holidaysByState.get(code) ?? [];
-      for (const p of periods) {
-        const s = parseIso(p.start);
-        const e = parseIso(p.end);
+      const events = (eventsByState.get(code) ?? []).slice();
+
+      // Add regional holidays from feiertage.regional
+      const reg = holidays.regional.get(code) ?? new Map();
+      for (const [dateIso, names] of reg.entries()) {
+        // each name as one-day event
+        for (const name of names) {
+          events.push({ type: 'feiertag', scope: 'regional', name, start: dateIso, end: dateIso });
+        }
+      }
+
+      for (const ev of events) {
+        const s = parseIso(ev.start);
+        const e = parseIso(ev.end);
         if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) continue;
 
         const last = CONFIG.inclusiveEnd ? e : addDays(e, -1);
@@ -512,65 +595,23 @@
           if (!slot) continue;
 
           if (!slot.holidayNamesByState.has(code)) slot.holidayNamesByState.set(code, new Set());
-          slot.holidayNamesByState.get(code).add(p.name);
+          slot.holidayNamesByState.get(code).add(ev.name);
 
           if (appState.included.has(code)) slot.states.add(code);
+
+          if (code === appState.selected && ev.type === 'feiertag') {
+            slot.selectedHasFeiertag = true;
+            slot.selectedFeiertagNames.push(ev.name);
+          }
         }
       }
-    }
-
-    for (const slot of dayMap.values()) {
-      slot.selectedHas = slot.holidayNamesByState.has(appState.selected);
     }
 
     return dayMap;
   }
 
-  // --- Render: create blocks and fill ---
-  function ensureHeatmapBlocks() {
-    if (appState.renderTargets.size) return;
-
-    heatmapsWrap.innerHTML = '';
-    appState.renderTargets = new Map();
-
-    for (const year of YEARS) {
-      const block = document.createElement('div');
-      block.className = 'yearBlock';
-      block.dataset.year = String(year);
-
-      const watermark = document.createElement('div');
-      watermark.className = 'yearWatermark';
-      watermark.textContent = String(year);
-
-      const monthLabels = document.createElement('div');
-      monthLabels.className = 'monthLabels';
-
-      const axes = document.createElement('div');
-      axes.className = 'axes';
-
-      const dayLabels = document.createElement('div');
-      dayLabels.className = 'dayLabels';
-      dayLabels.setAttribute('aria-hidden', 'true');
-      dayLabels.innerHTML = '<div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>';
-
-      const heatmap = document.createElement('div');
-      heatmap.className = 'heatmap';
-      heatmap.setAttribute('aria-label', `Heatmap ${year}`);
-
-      axes.appendChild(dayLabels);
-      axes.appendChild(heatmap);
-
-      block.appendChild(watermark);
-      block.appendChild(monthLabels);
-      block.appendChild(axes);
-
-      heatmapsWrap.appendChild(block);
-
-      appState.renderTargets.set(year, { blockEl: block, monthLabelsEl: monthLabels, heatmapEl: heatmap });
-    }
-  }
-
-  function renderLegend() {
+  // --- Rendering ---
+    function renderLegend() {
     const max = Math.max(0, appState.globalMaxOverlap);
 
     const steps = max <= 0
@@ -601,10 +642,10 @@
         <div class="legend__tag">0 → ${max}</div>
       </div>
       <div class="legend__row">
-        <div class="legend__cell" style="background: ${colorForCount(Math.ceil(max/2)||1, max||1, 'blue', false)}; position: relative;">
-          <span style="position:absolute; inset:0; background: repeating-linear-gradient(135deg, rgba(255,138,42,0) 0px, rgba(255,138,42,0) 6px, rgba(255,138,42,0.60) 6px, rgba(255,138,42,0.60) 9px); border-radius:4px; opacity:.60"></span>
+        <div class="legend__cell" style="background: ${colorForCount(Math.ceil(max/2)||1, max||1, 'yellow', false)}; position: relative;">
+          <span style="position:absolute; inset:0; background: repeating-linear-gradient(135deg, rgba(255,59,59,0) 0px, rgba(255,59,59,0) 6px, rgba(255,59,59,0.70) 6px, rgba(255,59,59,0.70) 9px); border-radius:4px; opacity:.75"></span>
         </div>
-        <div class="legend__label">Feiertag (bundesweit)</div>
+        <div class="legend__label">Feiertag (Auswahl-Bundesland)</div>
       </div>
     `;
   }
@@ -626,7 +667,6 @@
     const gridStart = startOfWeekMonday(start);
     const gridEnd = addDays(startOfWeekMonday(addDays(end, 1)), 6);
 
-    // use global max so colors comparable across years
     const max = Math.max(1, appState.globalMaxOverlap || 1);
 
     renderMonthLabels(year, gridStart, monthLabelsEl);
@@ -653,12 +693,14 @@
       } else {
         const slot = dayMap?.get(key);
         const count = slot ? slot.states.size : 0;
-        const selectedHas = slot?.selectedHas ?? false;
+        const selectedHasAny = slot?.holidayNamesByState?.has(appState.selected) ?? false;
 
-        const palette = selectedHas ? 'yellow' : 'blue';
+        const palette = selectedHasAny ? 'yellow' : 'blue';
         cell.style.backgroundColor = colorForCount(count, max, palette, isWeekend);
 
-        if (slot?.isPublicHoliday) cell.classList.add('cell--publicHoliday');
+        if (slot?.selectedHasFeiertag) {
+          cell.classList.add('cell--selectedHoliday');
+        }
 
         cell.addEventListener('mouseenter', (e) => {
           showTooltipForDate(year, key, e.clientX, e.clientY);
@@ -701,7 +743,7 @@
     monthLabelsEl.innerHTML = cols.map(t => `<div>${escapeHtml(t)}</div>`).join('');
   }
 
-  // --- Tooltip (no pinning) ---
+  // --- Tooltip ---
   function showTooltipForDate(year, dateIso, x, y) {
     const dayMap = appState.dayMapByYear.get(year);
     const slot = dayMap?.get(dateIso);
@@ -711,23 +753,24 @@
     const includedTotal = appState.included.size;
 
     const includedStates = Array.from(slot.states).map(stateName).sort((a,b) => a.localeCompare(b));
-    const selectedNames = Array.from(slot.holidayNamesByState.get(appState.selected) ?? []).sort();
+    const selectedSet = slot.holidayNamesByState.get(appState.selected);
+    const selectedNames = selectedSet ? Array.from(selectedSet).sort() : [];
 
-    const selectedLine = slot.selectedHas
-      ? `<div class="t-row"><strong>Ausgewählt:</strong> ${escapeHtml(stateName(appState.selected))} (${selectedNames.map(escapeHtml).join(', ') || 'Ferien'})</div>`
-      : `<div class="t-row"><strong>Ausgewählt:</strong> ${escapeHtml(stateName(appState.selected))} (keine Ferien)</div>`;
+    const selectedLine = selectedNames.length
+      ? `<div class="t-row"><strong>Ausgewählt:</strong> ${escapeHtml(stateName(appState.selected))} (${selectedNames.map(escapeHtml).join(', ')})</div>`
+      : `<div class="t-row"><strong>Ausgewählt:</strong> ${escapeHtml(stateName(appState.selected))} (keine Ereignisse)</div>`;
 
-    const feiertag = slot.isPublicHoliday
-      ? `<div class="t-row" style="margin-top:6px"><span class="pill pill--holiday">Feiertag (DE): ${escapeHtml(slot.publicHolidayName)}</span></div>`
+    const feiertagPill = slot.selectedHasFeiertag
+      ? `<div class="t-row" style="margin-top:6px"><span class="pill pill--holiday">Feiertag: ${escapeHtml((slot.selectedFeiertagNames||[]).join(', '))}</span></div>`
       : '';
 
     const listAll = includedStates.length ? escapeHtml(includedStates.join(', ')) : '—';
 
     tooltipEl.innerHTML = `
       <div class="t-title">${escapeHtml(formatDate(dateIso))} <span class="muted">(${year})</span></div>
-      <div class="t-row"><strong>Bundesländer mit Ferien (einbezogen):</strong> ${count} / ${includedTotal}</div>
+      <div class="t-row"><strong>Bundesländer mit Ereignis (einbezogen):</strong> ${count} / ${includedTotal}</div>
       ${selectedLine}
-      ${feiertag}
+      ${feiertagPill}
       <div class="t-row" style="margin-top:6px"><strong>Liste:</strong> ${listAll}</div>
     `;
 
@@ -752,9 +795,53 @@
     tooltipEl.style.top = `${clamp(top, 10, vh - rect.height - 10)}px`;
   }
 
-  function hideTooltip(force = false) {
+  function hideTooltip() {
     tooltipEl.classList.remove('visible');
     tooltipEl.setAttribute('aria-hidden', 'true');
+  }
+
+  // --- Render blocks ---
+  function ensureHeatmapBlocks() {
+    if (appState.renderTargets.size) return;
+
+    heatmapsWrap.innerHTML = '';
+    appState.renderTargets = new Map();
+
+    for (const year of YEARS) {
+      const block = document.createElement('div');
+      block.className = 'yearBlock';
+      block.dataset.year = String(year);
+
+      const watermark = document.createElement('div');
+      watermark.className = 'yearWatermark';
+      watermark.textContent = String(year);
+
+      const monthLabels = document.createElement('div');
+      monthLabels.className = 'monthLabels';
+
+      const axes = document.createElement('div');
+      axes.className = 'axes';
+
+      const dayLabels = document.createElement('div');
+      dayLabels.className = 'dayLabels';
+      dayLabels.setAttribute('aria-hidden', 'true');
+      dayLabels.innerHTML = '<div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>';
+
+      const heatmap = document.createElement('div');
+      heatmap.className = 'heatmap';
+      heatmap.setAttribute('aria-label', `Heatmap ${year}`);
+
+      axes.appendChild(dayLabels);
+      axes.appendChild(heatmap);
+
+      block.appendChild(watermark);
+      block.appendChild(monthLabels);
+      block.appendChild(axes);
+
+      heatmapsWrap.appendChild(block);
+
+      appState.renderTargets.set(year, { monthLabelsEl: monthLabels, heatmapEl: heatmap });
+    }
   }
 
   // --- Boot ---

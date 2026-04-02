@@ -10,7 +10,7 @@
   <header class="header">
     <div class="title">
       <h1>Schulferien-Heatmap Deutschland</h1>
-      <p class="subtitle">Blau = Überschneidung der einbezogenen Bundesländer. Gelb = ausgewähltes Bundesland (Schattierung nach Überschneidung). Orange = bundesweite Feiertage (Schraffur).</p>
+      <p class="subtitle">Blau = Überschneidung der einbezogenen Bundesländer. Gelb = ausgewähltes Bundesland (Schattierung nach Überschneidung). Rot = Feiertag (Schraffur) für das ausgewählte Bundesland.</p>
     </div>
 
     <div class="controls">
@@ -46,7 +46,7 @@
       <div class="panel__header">
         <div class="panel__headerLeft">
           <h2>Heatmaps (2026–2028)</h2>
-          <p class="hint">Wochen starten am Montag. Wochenenden sind leicht hervorgehoben. Jahreszahl rechts wird beim Überfahren eingeblendet.</p>
+          <p class="hint">Wochen starten am Montag. Wochenenden sind leicht hervorgehoben. Jahreszahl rechts bleibt sichtbar (sofern Platz vorhanden).</p>
         </div>
         <div class="legend" id="legend"></div>
       </div>
@@ -80,9 +80,7 @@
   </div>
 
   <footer class="footer">
-    <p>
-      <strong>Lokale, statische Daten:</strong> Lege Dateien in <code>./data/holidays-YYYY.json</code> ab und starte einen lokalen Webserver (z. B. <code>python3 -m http.server</code>).
-    </p>
+    <p><strong>Hinweis:</strong> Alle angezeigten Daten sind ohne Gewähr.</p>
   </footer>
 
   <script src="app.js"></script>

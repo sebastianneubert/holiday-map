@@ -1,132 +1,190 @@
 {
   "meta": {
     "year": 2028,
-    "source": "KMK Schulferien 2027/2028",
-    "notes": "Offizielle Hauptferienblöcke je Bundesland. Einzelne zusätzliche freie Tage sind nicht enthalten."
+    "source": "KMK / schulferien.org / Feiertagskalender",
+    "notes": "Alle Angaben ohne Gewähr. Hauptferienblöcke je Bundesland, regionale Einzeltage teilweise zusammengefasst."
   },
   "states": {
     "bw": [
-      { "name": "Osterferien", "start": "2028-04-18", "end": "2028-04-22" },
-      { "name": "Pfingstferien", "start": "2028-06-06", "end": "2028-06-17" },
-      { "name": "Sommerferien", "start": "2028-07-27", "end": "2028-09-09" },
-      { "name": "Herbstferien", "start": "2028-10-30", "end": "2028-11-03" },
-      { "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-05" }
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-13", "end": "2028-04-22" },
+      { "type": "ferien", "name": "Pfingstferien", "start": "2028-06-06", "end": "2028-06-17" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-27", "end": "2028-09-09" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-30", "end": "2028-11-03" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-05" }
     ],
-
     "by": [
-      { "name": "Winterferien", "start": "2028-02-28", "end": "2028-03-03" },
-      { "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-21" },
-      { "name": "Pfingstferien", "start": "2028-06-06", "end": "2028-06-16" },
-      { "name": "Sommerferien", "start": "2028-07-31", "end": "2028-09-11" },
-      { "name": "Herbstferien", "start": "2028-10-30", "end": "2028-11-03" },
-      { "name": "Weihnachtsferien", "start": "2028-12-27", "end": "2029-01-05" }
+      { "type": "ferien", "name": "Winterferien", "start": "2028-02-28", "end": "2028-03-03" },
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-21" },
+      { "type": "ferien", "name": "Pfingstferien", "start": "2028-06-06", "end": "2028-06-16" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-31", "end": "2028-09-11" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-30", "end": "2028-11-03" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-05" }
     ],
-
     "be": [
-      { "name": "Winterferien", "start": "2028-01-31", "end": "2028-02-05" },
-      { "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
-      { "name": "Sommerferien", "start": "2028-06-22", "end": "2028-08-04" },
-      { "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-28" },
-      { "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-05" }
+      { "type": "ferien", "name": "Winterferien", "start": "2028-01-31", "end": "2028-02-05" },
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-01", "end": "2028-08-12" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-02", "end": "2028-10-14" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-22", "end": "2029-01-02" }
     ],
-
     "bb": [
-      { "name": "Winterferien", "start": "2028-01-31", "end": "2028-02-05" },
-      { "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
-      { "name": "Sommerferien", "start": "2028-06-22", "end": "2028-08-04" },
-      { "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-28" },
-      { "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-05" }
+      { "type": "ferien", "name": "Winterferien", "start": "2028-01-31", "end": "2028-02-05" },
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-06-29", "end": "2028-08-12" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-02", "end": "2028-10-14" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-22", "end": "2029-01-02" }
     ],
-
     "hb": [
-      { "name": "Winterferien", "start": "2028-01-31", "end": "2028-02-01" },
-      { "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
-      { "name": "Sommerferien", "start": "2028-06-22", "end": "2028-08-02" },
-      { "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-28" },
-      { "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-06" }
+      { "type": "ferien", "name": "Winterferien", "start": "2028-01-31", "end": "2028-02-01" },
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-20", "end": "2028-08-30" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-23", "end": "2028-11-04" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-06" }
     ],
-
     "hh": [
-      { "name": "Frühjahrsferien", "start": "2028-03-06", "end": "2028-03-17" },
-      { "name": "Sommerferien", "start": "2028-06-29", "end": "2028-08-09" },
-      { "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-27" },
-      { "name": "Weihnachtsferien", "start": "2028-12-21", "end": "2029-01-05" }
+      { "type": "ferien", "name": "Frühjahrsferien", "start": "2028-03-06", "end": "2028-03-17" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-20", "end": "2028-08-30" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-27" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-22", "end": "2029-01-05" }
     ],
-
     "he": [
-      { "name": "Osterferien", "start": "2028-04-03", "end": "2028-04-14" },
-      { "name": "Sommerferien", "start": "2028-06-26", "end": "2028-08-04" },
-      { "name": "Herbstferien", "start": "2028-10-09", "end": "2028-10-21" },
-      { "name": "Weihnachtsferien", "start": "2028-12-27", "end": "2029-01-12" }
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-03", "end": "2028-04-14" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-10", "end": "2028-08-18" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-09", "end": "2028-10-21" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-12" }
     ],
-
     "mv": [
-      { "name": "Winterferien", "start": "2028-02-05", "end": "2028-02-17" },
-      { "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-19" },
-      { "name": "Sommerferien", "start": "2028-07-10", "end": "2028-08-19" },
-      { "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-21" },
-      { "name": "Weihnachtsferien", "start": "2028-12-21", "end": "2029-01-02" }
+      { "type": "ferien", "name": "Winterferien", "start": "2028-02-05", "end": "2028-02-17" },
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-19" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-17", "end": "2028-08-26" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-02", "end": "2028-10-14" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-22", "end": "2029-01-05" }
     ],
-
     "ni": [
-      { "name": "Winterferien", "start": "2028-01-31", "end": "2028-02-01" },
-      { "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
-      { "name": "Sommerferien", "start": "2028-06-22", "end": "2028-08-02" },
-      { "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-28" },
-      { "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-06" }
+      { "type": "ferien", "name": "Winterferien", "start": "2028-01-31", "end": "2028-02-01" },
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-20", "end": "2028-08-30" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-28" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-06" }
     ],
-
     "nw": [
-      { "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
-      { "name": "Sommerferien", "start": "2028-07-17", "end": "2028-08-29" },
-      { "name": "Herbstferien", "start": "2028-10-09", "end": "2028-10-21" },
-      { "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-06" }
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-17", "end": "2028-08-29" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-02", "end": "2028-10-14" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-06" }
     ],
-
     "rp": [
-      { "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-21" },
-      { "name": "Sommerferien", "start": "2028-06-26", "end": "2028-08-04" },
-      { "name": "Herbstferien", "start": "2028-10-09", "end": "2028-10-20" },
-      { "name": "Weihnachtsferien", "start": "2028-12-27", "end": "2029-01-05" }
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-21" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-17", "end": "2028-08-25" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-09", "end": "2028-10-20" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-05" }
     ],
-
     "sl": [
-      { "name": "Winterferien", "start": "2028-02-21", "end": "2028-02-29" },
-      { "name": "Osterferien", "start": "2028-04-12", "end": "2028-04-21" },
-      { "name": "Sommerferien", "start": "2028-06-26", "end": "2028-08-04" },
-      { "name": "Herbstferien", "start": "2028-10-09", "end": "2028-10-20" },
-      { "name": "Weihnachtsferien", "start": "2028-12-21", "end": "2029-01-02" }
+      { "type": "ferien", "name": "Winterferien", "start": "2028-02-21", "end": "2028-02-29" },
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-12", "end": "2028-04-21" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-17", "end": "2028-08-25" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-09", "end": "2028-10-20" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-22", "end": "2029-01-05" }
     ],
-
     "sn": [
-      { "name": "Winterferien", "start": "2028-02-14", "end": "2028-02-26" },
-      { "name": "Osterferien", "start": "2028-04-14", "end": "2028-04-22" },
-      { "name": "Sommerferien", "start": "2028-07-08", "end": "2028-08-18" },
-      { "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-28" },
-      { "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-02" }
+      { "type": "ferien", "name": "Winterferien", "start": "2028-02-14", "end": "2028-02-26" },
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-14", "end": "2028-04-22" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-10", "end": "2028-08-18" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-02", "end": "2028-10-14" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-05" }
     ],
-
     "st": [
-      { "name": "Winterferien", "start": "2028-02-07", "end": "2028-02-12" },
-      { "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
-      { "name": "Sommerferien", "start": "2028-06-29", "end": "2028-08-09" },
-      { "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-21" },
-      { "name": "Weihnachtsferien", "start": "2028-12-21", "end": "2029-01-02" }
+      { "type": "ferien", "name": "Winterferien", "start": "2028-02-07", "end": "2028-02-12" },
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-10", "end": "2028-04-22" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-13", "end": "2028-08-23" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-23", "end": "2028-11-04" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-22", "end": "2029-01-05" }
     ],
-
     "sh": [
-      { "name": "Osterferien", "start": "2028-04-03", "end": "2028-04-15" },
-      { "name": "Sommerferien", "start": "2028-07-17", "end": "2028-08-26" },
-      { "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-28" },
-      { "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-06" }
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-03", "end": "2028-04-15" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-24", "end": "2028-09-02" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-28" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-06" }
     ],
-
     "th": [
-      { "name": "Winterferien", "start": "2028-02-07", "end": "2028-02-12" },
-      { "name": "Osterferien", "start": "2028-04-03", "end": "2028-04-15" },
-      { "name": "Sommerferien", "start": "2028-07-08", "end": "2028-08-18" },
-      { "name": "Herbstferien", "start": "2028-10-16", "end": "2028-10-28" },
-      { "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-02" }
+      { "type": "ferien", "name": "Winterferien", "start": "2028-02-07", "end": "2028-02-12" },
+      { "type": "ferien", "name": "Osterferien", "start": "2028-04-03", "end": "2028-04-15" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2028-07-10", "end": "2028-08-19" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2028-10-02", "end": "2028-10-14" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2028-12-23", "end": "2029-01-05" }
     ]
+  },
+  "feiertage": {
+    "bundesweit": [
+      { "type": "feiertag", "name": "Neujahr", "date": "2028-01-01" },
+      { "type": "feiertag", "name": "Karfreitag", "date": "2028-04-14" },
+      { "type": "feiertag", "name": "Ostermontag", "date": "2028-04-17" },
+      { "type": "feiertag", "name": "Tag der Arbeit", "date": "2028-05-01" },
+      { "type": "feiertag", "name": "Christi Himmelfahrt", "date": "2028-05-25" },
+      { "type": "feiertag", "name": "Pfingstmontag", "date": "2028-06-05" },
+      { "type": "feiertag", "name": "Tag der Deutschen Einheit", "date": "2028-10-03" },
+      { "type": "feiertag", "name": "1. Weihnachtstag", "date": "2028-12-25" },
+      { "type": "feiertag", "name": "2. Weihnachtstag", "date": "2028-12-26" }
+    ],
+    "regional": {
+      "bw": [
+        { "type": "feiertag", "name": "Heilige Drei Könige", "date": "2028-01-06" },
+        { "type": "feiertag", "name": "Fronleichnam", "date": "2028-06-15" },
+        { "type": "feiertag", "name": "Allerheiligen", "date": "2028-11-01" }
+      ],
+      "by": [
+        { "type": "feiertag", "name": "Heilige Drei Könige", "date": "2028-01-06" },
+        { "type": "feiertag", "name": "Fronleichnam", "date": "2028-06-15" },
+        { "type": "feiertag", "name": "Allerheiligen", "date": "2028-11-01" }
+      ],
+      "be": [
+        { "type": "feiertag", "name": "Internationaler Frauentag", "date": "2028-03-08" }
+      ],
+      "bb": [
+        { "type": "feiertag", "name": "Ostersonntag", "date": "2028-04-16" },
+        { "type": "feiertag", "name": "Pfingstsonntag", "date": "2028-06-04" },
+        { "type": "feiertag", "name": "Reformationstag", "date": "2028-10-31" }
+      ],
+      "hb": [],
+      "hh": [
+        { "type": "feiertag", "name": "Reformationstag", "date": "2028-10-31" }
+      ],
+      "he": [],
+      "mv": [
+        { "type": "feiertag", "name": "Internationaler Frauentag", "date": "2028-03-08" },
+        { "type": "feiertag", "name": "Reformationstag", "date": "2028-10-31" }
+      ],
+      "ni": [
+        { "type": "feiertag", "name": "Reformationstag", "date": "2028-10-31" }
+      ],
+      "nw": [
+        { "type": "feiertag", "name": "Fronleichnam", "date": "2028-06-15" },
+        { "type": "feiertag", "name": "Allerheiligen", "date": "2028-11-01" }
+      ],
+      "rp": [
+        { "type": "feiertag", "name": "Fronleichnam", "date": "2028-06-15" },
+        { "type": "feiertag", "name": "Allerheiligen", "date": "2028-11-01" }
+      ],
+      "sl": [
+        { "type": "feiertag", "name": "Fronleichnam", "date": "2028-06-15" },
+        { "type": "feiertag", "name": "Mariä Himmelfahrt", "date": "2028-08-15" },
+        { "type": "feiertag", "name": "Allerheiligen", "date": "2028-11-01" }
+      ],
+      "sn": [
+        { "type": "feiertag", "name": "Fronleichnam", "date": "2028-06-15" },
+        { "type": "feiertag", "name": "Buß- und Bettag", "date": "2028-11-22" }
+      ],
+      "st": [
+        { "type": "feiertag", "name": "Heilige Drei Könige", "date": "2028-01-06" },
+        { "type": "feiertag", "name": "Reformationstag", "date": "2028-10-31" }
+      ],
+      "sh": [
+        { "type": "feiertag", "name": "Reformationstag", "date": "2028-10-31" }
+      ],
+      "th": [
+        { "type": "feiertag", "name": "Weltkindertag", "date": "2028-09-20" },
+        { "type": "feiertag", "name": "Reformationstag", "date": "2028-10-31" }
+      ]
+    }
   }
 }

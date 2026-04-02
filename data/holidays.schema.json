@@ -1,36 +1,129 @@
-
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "German school holiday data (per year)",
+  "title": "Schulferien- und Feiertagsdaten (pro Jahr)",
   "type": "object",
-  "required": ["meta", "states"],
+  "required": [
+    "meta",
+    "states"
+  ],
   "properties": {
     "meta": {
       "type": "object",
-      "required": ["year"],
+      "required": [
+        "year"
+      ],
       "properties": {
-        "year": {"type": "integer"},
-        "source": {"type": "string"},
-        "notes": {"type": "string"}
+        "year": {
+          "type": "integer"
+        },
+        "source": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
       },
-      "additionalProperties": True
+      "additionalProperties": true
     },
     "states": {
+      "description": "Pro Bundesland eine Liste von Ereignissen (Ferien und/oder regionale Feiertage).",
       "type": "object",
       "additionalProperties": {
         "type": "array",
         "items": {
-          "type": "object",
-          "required": ["name", "start", "end"],
-          "properties": {
-            "name": {"type": "string"},
-            "start": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
-            "end": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"}
-          },
-          "additionalProperties": False
+          "$ref": "#/$defs/stateEvent"
         }
       }
+    },
+    "feiertage": {
+      "description": "Feiertage (bundesweit und regional).",
+      "type": "object",
+      "required": [
+        "bundesweit"
+      ],
+      "properties": {
+        "bundesweit": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/holiday"
+          }
+        },
+        "regional": {
+          "description": "Regionale Feiertage je Bundesland (zusätzlich zu states[].type=feiertag möglich).",
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/holiday"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
     }
   },
-  "additionalProperties": False
+  "$defs": {
+    "isoDate": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "stateEvent": {
+      "type": "object",
+      "required": [
+        "name",
+        "start",
+        "end"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "ferien",
+            "feiertag"
+          ],
+          "default": "ferien"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "regional",
+            "bundesweit"
+          ],
+          "default": "regional"
+        },
+        "name": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/isoDate"
+        },
+        "end": {
+          "$ref": "#/$defs/isoDate"
+        }
+      },
+      "additionalProperties": true
+    },
+    "holiday": {
+      "type": "object",
+      "required": [
+        "name",
+        "date"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "feiertag",
+          "default": "feiertag"
+        },
+        "name": {
+          "type": "string"
+        },
+        "date": {
+          "$ref": "#/$defs/isoDate"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
 }

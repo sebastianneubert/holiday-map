@@ -1,118 +1,178 @@
 {
   "meta": {
     "year": 2027,
-    "source": "KMK Schulferien 2026/2027",
-    "notes": "Offizielle Hauptferienblöcke je Bundesland. Einzelne zusätzliche freie Tage (z.B. Brückentage) sind nicht enthalten."
+    "source": "KMK + gesetzliche Feiertage Deutschland 2027",
+    "notes": "Alle Angaben ohne Gewähr. Einzelne bewegliche schulfreie Tage können je Land zusätzlich gelten."
   },
   "states": {
     "bw": [
-      { "name": "Osterferien", "start": "2027-03-30", "end": "2027-04-03" },
-      { "name": "Pfingstferien", "start": "2027-05-18", "end": "2027-05-29" },
-      { "name": "Sommerferien", "start": "2027-07-29", "end": "2027-09-11" },
-      { "name": "Herbstferien", "start": "2027-10-26", "end": "2027-10-30" },
-      { "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-08" }
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-25", "end": "2027-04-03" },
+      { "type": "ferien", "name": "Pfingstferien", "start": "2027-05-18", "end": "2027-05-29" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-29", "end": "2027-09-11" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-11-02", "end": "2027-11-06" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-08" }
     ],
     "by": [
-      { "name": "Winterferien", "start": "2027-02-08", "end": "2027-02-12" },
-      { "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-02" },
-      { "name": "Pfingstferien", "start": "2027-05-18", "end": "2027-05-28" },
-      { "name": "Sommerferien", "start": "2027-08-02", "end": "2027-09-13" },
-      { "name": "Herbstferien", "start": "2027-11-02", "end": "2027-11-06" },
-      { "name": "Weihnachtsferien", "start": "2027-12-24", "end": "2028-01-08" }
+      { "type": "ferien", "name": "Winterferien", "start": "2027-02-08", "end": "2027-02-12" },
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-29", "end": "2027-04-09" },
+      { "type": "ferien", "name": "Pfingstferien", "start": "2027-05-18", "end": "2027-05-28" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-08-02", "end": "2027-09-13" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-11-02", "end": "2027-11-05" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-24", "end": "2028-01-07" }
     ],
     "be": [
-      { "name": "Winterferien", "start": "2027-02-01", "end": "2027-02-06" },
-      { "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-02" },
-      { "name": "Sommerferien", "start": "2027-07-01", "end": "2027-08-14" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
-      { "name": "Weihnachtsferien", "start": "2027-12-22", "end": "2027-12-31" }
+      { "type": "ferien", "name": "Winterferien", "start": "2027-02-01", "end": "2027-02-06" },
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-02" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-01", "end": "2027-08-13" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-18", "end": "2027-10-30" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-01" }
     ],
     "bb": [
-      { "name": "Winterferien", "start": "2027-02-01", "end": "2027-02-06" },
-      { "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-03" },
-      { "name": "Sommerferien", "start": "2027-07-01", "end": "2027-08-14" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
-      { "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2027-12-31" }
+      { "type": "ferien", "name": "Winterferien", "start": "2027-02-01", "end": "2027-02-06" },
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-02" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-01", "end": "2027-08-13" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-18", "end": "2027-10-30" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-01" }
     ],
     "hb": [
-      { "name": "Winterferien", "start": "2027-02-01", "end": "2027-02-02" },
-      { "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-03" },
-      { "name": "Sommerferien", "start": "2027-07-08", "end": "2027-08-18" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
-      { "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-08" }
+      { "type": "ferien", "name": "Halbjahresferien", "start": "2027-02-01", "end": "2027-02-02" },
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-03" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-08", "end": "2027-08-18" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-08" }
     ],
     "hh": [
-      { "name": "Frühjahrsferien", "start": "2027-03-01", "end": "2027-03-12" },
-      { "name": "Sommerferien", "start": "2027-07-01", "end": "2027-08-11" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-22" },
-      { "name": "Weihnachtsferien", "start": "2027-12-20", "end": "2027-12-31" }
+      { "type": "ferien", "name": "Frühjahrsferien", "start": "2027-03-01", "end": "2027-03-12" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-08", "end": "2027-08-18" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-22" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-07" }
     ],
     "he": [
-      { "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-02" },
-      { "name": "Sommerferien", "start": "2027-06-28", "end": "2027-08-06" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
-      { "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-08" }
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-02" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-06-28", "end": "2027-08-06" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-08" }
     ],
     "mv": [
-      { "name": "Winterferien", "start": "2027-02-08", "end": "2027-02-19" },
-      { "name": "Osterferien", "start": "2027-03-22", "end": "2027-03-31" },
-      { "name": "Sommerferien", "start": "2027-07-05", "end": "2027-08-14" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-16" },
-      { "name": "Weihnachtsferien", "start": "2027-12-20", "end": "2028-01-01" }
+      { "type": "ferien", "name": "Winterferien", "start": "2027-02-08", "end": "2027-02-19" },
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-29", "end": "2027-04-07" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-05", "end": "2027-08-14" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-18", "end": "2027-10-23" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-20", "end": "2028-01-01" }
     ],
     "ni": [
-      { "name": "Winterferien", "start": "2027-02-01", "end": "2027-02-02" },
-      { "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-03" },
-      { "name": "Sommerferien", "start": "2027-07-08", "end": "2027-08-18" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
-      { "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-08" }
+      { "type": "ferien", "name": "Halbjahresferien", "start": "2027-02-01", "end": "2027-02-02" },
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-03" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-08", "end": "2027-08-18" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-08" }
     ],
     "nw": [
-      { "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-03" },
-      { "name": "Sommerferien", "start": "2027-07-19", "end": "2027-08-31" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
-      { "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-06" }
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-03" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-19", "end": "2027-08-31" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-06" }
     ],
     "rp": [
-      { "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-02" },
-      { "name": "Sommerferien", "start": "2027-06-28", "end": "2027-08-06" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-22" },
-      { "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-07" }
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-02" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-06-28", "end": "2027-08-06" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-22" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-07" }
     ],
     "sl": [
-      { "name": "Winterferien", "start": "2027-02-08", "end": "2027-02-12" },
-      { "name": "Osterferien", "start": "2027-03-30", "end": "2027-04-09" },
-      { "name": "Sommerferien", "start": "2027-06-28", "end": "2027-08-06" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-22" },
-      { "name": "Weihnachtsferien", "start": "2027-12-20", "end": "2027-12-31" }
+      { "type": "ferien", "name": "Winterferien", "start": "2027-02-15", "end": "2027-02-19" },
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-29", "end": "2027-04-09" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-06-28", "end": "2027-08-06" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-18", "end": "2027-10-29" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-20", "end": "2027-12-31" }
     ],
     "sn": [
-      { "name": "Winterferien", "start": "2027-02-08", "end": "2027-02-19" },
-      { "name": "Osterferien", "start": "2027-03-26", "end": "2027-04-02" },
-      { "name": "Sommerferien", "start": "2027-07-10", "end": "2027-08-20" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
-      { "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-01" }
+      { "type": "ferien", "name": "Winterferien", "start": "2027-02-08", "end": "2027-02-20" },
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-26", "end": "2027-04-02" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-12", "end": "2027-08-20" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-01" }
     ],
     "st": [
-      { "name": "Winterferien", "start": "2027-02-01", "end": "2027-02-06" },
-      { "name": "Osterferien", "start": "2027-03-22", "end": "2027-03-27" },
-      { "name": "Sommerferien", "start": "2027-07-08", "end": "2027-08-18" },
-      { "name": "Herbstferien", "start": "2027-10-18", "end": "2027-10-23" },
-      { "name": "Weihnachtsferien", "start": "2027-12-20", "end": "2028-01-01" }
+      { "type": "ferien", "name": "Winterferien", "start": "2027-02-06", "end": "2027-02-12" },
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-29", "end": "2027-04-03" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-05", "end": "2027-08-14" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-18", "end": "2027-10-23" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-20", "end": "2028-01-01" }
     ],
     "sh": [
-      { "name": "Winterferien", "start": "2027-02-01", "end": "2027-02-02" },
-      { "name": "Osterferien", "start": "2027-03-30", "end": "2027-04-10" },
-      { "name": "Sommerferien", "start": "2027-07-19", "end": "2027-08-28" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
-      { "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-07" }
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-25", "end": "2027-04-10" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-26", "end": "2027-09-04" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-18", "end": "2027-10-30" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-08" }
     ],
     "th": [
-      { "name": "Winterferien", "start": "2027-02-01", "end": "2027-02-06" },
-      { "name": "Osterferien", "start": "2027-03-22", "end": "2027-04-03" },
-      { "name": "Sommerferien", "start": "2027-07-10", "end": "2027-08-20" },
-      { "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
-      { "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-01" }
+      { "type": "ferien", "name": "Winterferien", "start": "2027-02-15", "end": "2027-02-20" },
+      { "type": "ferien", "name": "Osterferien", "start": "2027-03-29", "end": "2027-04-09" },
+      { "type": "ferien", "name": "Sommerferien", "start": "2027-07-12", "end": "2027-08-21" },
+      { "type": "ferien", "name": "Herbstferien", "start": "2027-10-11", "end": "2027-10-23" },
+      { "type": "ferien", "name": "Weihnachtsferien", "start": "2027-12-23", "end": "2028-01-01" }
     ]
+  },
+  "feiertage": {
+    "bundesweit": [
+      { "type": "feiertag", "name": "Neujahr", "date": "2027-01-01" },
+      { "type": "feiertag", "name": "Karfreitag", "date": "2027-03-26" },
+      { "type": "feiertag", "name": "Ostermontag", "date": "2027-03-29" },
+      { "type": "feiertag", "name": "Tag der Arbeit", "date": "2027-05-01" },
+      { "type": "feiertag", "name": "Christi Himmelfahrt", "date": "2027-05-06" },
+      { "type": "feiertag", "name": "Pfingstmontag", "date": "2027-05-17" },
+      { "type": "feiertag", "name": "Tag der Deutschen Einheit", "date": "2027-10-03" },
+      { "type": "feiertag", "name": "1. Weihnachtstag", "date": "2027-12-25" },
+      { "type": "feiertag", "name": "2. Weihnachtstag", "date": "2027-12-26" }
+    ],
+    "regional": {
+      "bw": [
+        { "type": "feiertag", "name": "Heilige Drei Könige", "date": "2027-01-06" },
+        { "type": "feiertag", "name": "Fronleichnam", "date": "2027-05-27" }
+      ],
+      "by": [
+        { "type": "feiertag", "name": "Heilige Drei Könige", "date": "2027-01-06" },
+        { "type": "feiertag", "name": "Fronleichnam", "date": "2027-05-27" }
+      ],
+      "be": [
+        { "type": "feiertag", "name": "Internationaler Frauentag", "date": "2027-03-08" }
+      ],
+      "bb": [
+        { "type": "feiertag", "name": "Ostersonntag", "date": "2027-03-28" },
+        { "type": "feiertag", "name": "Pfingstsonntag", "date": "2027-05-16" }
+      ],
+      "hb": [],
+      "hh": [],
+      "he": [],
+      "mv": [
+        { "type": "feiertag", "name": "Internationaler Frauentag", "date": "2027-03-08" }
+      ],
+      "ni": [
+        { "type": "feiertag", "name": "Reformationstag", "date": "2027-10-31" }
+      ],
+      "nw": [
+        { "type": "feiertag", "name": "Fronleichnam", "date": "2027-05-27" }
+      ],
+      "rp": [
+        { "type": "feiertag", "name": "Fronleichnam", "date": "2027-05-27" }
+      ],
+      "sl": [
+        { "type": "feiertag", "name": "Fronleichnam", "date": "2027-05-27" }
+      ],
+      "sn": [
+        { "type": "feiertag", "name": "Buß- und Bettag", "date": "2027-11-17" }
+      ],
+      "st": [
+        { "type": "feiertag", "name": "Heilige Drei Könige", "date": "2027-01-06" },
+        { "type": "feiertag", "name": "Reformationstag", "date": "2027-10-31" }
+      ],
+      "sh": [
+        { "type": "feiertag", "name": "Reformationstag", "date": "2027-10-31" }
+      ],
+      "th": [
+        { "type": "feiertag", "name": "Weltkindertag", "date": "2027-09-20" }
+      ]
+    }
   }
 }
